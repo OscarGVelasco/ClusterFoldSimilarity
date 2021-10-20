@@ -36,28 +36,45 @@ multi_cluster_plot <- function(sce_list = NULL,dim_method="PCA",pdf_name = NULL)
   if(dim_method == "PCA"){
     dimMeth <- "PCA"
     if(is_sce){useDimFunc <- scater::calculatePCA}
+    if(is_seurat){useDimFunc <- Seurat::RunPCA}
   }
   if(dim_method == "UMAP"){
     dimMeth <- "UMAP"
     if(is_sce){useDimFunc <- scater::calculateUMAP}
+    if(is_seurat){useDimFunc <- Seurat::RunUMAP}
       }
   if(dim_method == "tSNE"){
     dimMeth <- "tSNE"
     if(is_sce){useDimFunc <- scater::calculateTSNE}
+    if(is_seurat){useDimFunc <- Seurat::RunTSNE}
   }
-  if(is_seurat){useDimFunc <- function(x,dim_method = dimMeth){Embeddings(x[[dim_method]])[,1:2]}}
   
-  if(is_sce){
-    if(dimMeth %in% reducedDimNames(sce_list[[1]])){data <- reducedDim(sce_list[[1]],dimMeth)}else{data <- useDimFunc(sce_list[[1]])}
-    }
+  if(is_seurat){getDimFunc <- function(x,dim_method = dimMeth,useDimFunc=useDimFunc){
+    if(dimMeth %in% names(x@reductions)){return(Embeddings(x[[dim_method]])[,1:2]) # If the dimensionality has been previously calculated, we obtain the values.
+    }else{
+        return(useDimFunc(x)) # If the required dimensionality is NOT in the object, we calculate it.
+      }}
+  }
+  if(is_sce){getDimFunc <- function(x,dim_method = dimMeth,useDimFunc=useDimFunc){
+    if(dimMeth %in% reducedDimNames(x)){return(reducedDim(x,dimMeth)[,1:2]) # If the dimensionality has been previously calculated, we obtain the values.
+    }else{
+      return(useDimFunc(x)) # If the required dimensionality is NOT in the object, we calculate it.
+    }}
+  }
   
-  data <- cbind.data.frame(data,sample_id=1, cluster = colLabels(sce_list[[1]]))
-  for (i in seq_along(sce_list)[-1]){
-    if(dimMeth %in% reducedDimNames(sce_list[[i]])){
-      data <- rbind.data.frame(data,cbind.data.frame(reducedDim(sce_list[[i]],dimMeth),sample_id=i, cluster = colLabels(sce_list[[i]])))
-     }else{
-      data <- rbind.data.frame(data,cbind.data.frame(useDimFunc(sce_list[[i]]),sample_id=i, cluster = colLabels(sce_list[[i]])))
-      }
+  # if(is_sce){
+  #   if(dimMeth %in% reducedDimNames(sce_list[[1]])){data <- reducedDim(sce_list[[1]],dimMeth)}else{data <- useDimFunc(sce_list[[1]])}
+  #   }
+  
+  data <- cbind.data.frame(getDimFunc(sce_list[[1]]),sample_id=1, cluster = colLabels(sce_list[[1]]))
+
+    for (i in seq_along(sce_list)[-1]){
+    data <- rbind.data.frame(data,cbind.data.frame(getDimFunc(sce_list[[i]]),sample_id=i, cluster = colLabels(sce_list[[i]])))
+    # if(dimMeth %in% reducedDimNames(sce_list[[i]])){
+    #   data <- rbind.data.frame(data,cbind.data.frame(reducedDim(sce_list[[i]],dimMeth),sample_id=i, cluster = colLabels(sce_list[[i]])))
+    #  }else{
+    #   data <- rbind.data.frame(data,cbind.data.frame(useDimFunc(sce_list[[i]]),sample_id=i, cluster = colLabels(sce_list[[i]])))
+    #   }
   }
   
   data$sample_id <- data$sample_id
