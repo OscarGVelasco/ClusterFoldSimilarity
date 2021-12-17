@@ -7,7 +7,7 @@
 cluster_fold_similarity(
   sce_list = NULL,
   sample_names = NULL,
-  top_n = 2,
+  top_n = 1,
   top_n_genes = 1
 )
 }
@@ -16,9 +16,9 @@ cluster_fold_similarity(
 
 \item{sample_names}{Character Vector. Specify the sample names, if not a number corresponding with its position on (sce_list).}
 
-\item{top_n}{Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison.}
+\item{top_n}{Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1).}
 
-\item{top_n_genes}{Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison.}
+\item{top_n_genes}{Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison (default 1).}
 }
 \value{
 A dataframe containing the best top similarities between all possible pairs of single cell samples.

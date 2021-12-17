@@ -5,21 +5,24 @@
 #' This function will calculate a similarity coeficient using the fold changes of shared genes among clusters of different samples/batches. The similarity coeficient
 #' is calculated using the dotproduct of every pairwise combination of Fold Changes between a source cluster i of sample n and all the target clusters in sample j.
 #'
-#' @param sce_list List. A list of single cell experiments. At least 2 single cell experiments are needed.
+#' @param sce_list List. A list of single cell experiments. At least 2 single cell experiments are needed. The objects are expected to be subsets of the original data, 
+#' containing the selected features (e.g. 2000 most variable genes).
 #' @param sample_names Character Vector. Specify the sample names, if not a number corresponding with its position on (sce_list).
-#' @param top_n Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison.
-#' @param top_n_genes Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison.
+#' @param top_n Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1).
+#' @param top_n_genes Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison (default 1).
 #' 
 #' @return A dataframe containing the best top similarities between all possible pairs of single cell samples.
 #' 
 #' @export
 cluster_fold_similarity <- function(sce_list = NULL,
                                   sample_names = NULL,
-                                  top_n = 2,
+                                  top_n = 1,
                                   top_n_genes = 1){
   if(is.null(sce_list) | (length(sce_list)<2)){
     stop("At least two Single Cell Experiments are needed for cluster comparison.")
   }
+  is_seurat <- FALSE
+  is_sce <- FALSE
   # Function starts by loading dependencies
   if(class(sce_list[[1]]) == "Seurat" ){
     if (!requireNamespace("Seurat", quietly = TRUE)) {
@@ -34,6 +37,9 @@ cluster_fold_similarity <- function(sce_list = NULL,
            call. = FALSE)}
     is_seurat <- FALSE
     is_sce <- TRUE
+  }
+  if (!is_seurat & !is_sce){
+    stop("One or more objects in the input list is neither of class Seurat nor SingleDataExperiment.")
   }
   summary_results <- data.frame(similarity_value=integer(),
                                 sem=integer(),
@@ -81,13 +87,15 @@ cluster_fold_similarity <- function(sce_list = NULL,
     })
   }
   # Main loop - samples
-  for (i in 1:(length(markers_sce_list)-1)){
+  for (i in 1:(length(markers_sce_list))){
     # Pick a sample in ascending order
     y <- markers_sce_list[[i]]
     for (j in seq_along(y)){
       # We choose a root cluster and compare it with clusters of samples i+1+...+n
       root <- y[[j]]
-      for (k in seq(from=i+1,to=length(markers_sce_list),by = 1)){
+      # for (k in seq(from=i+1,to=length(markers_sce_list),by = 1)){
+      for (k in seq(from=1,to=length(markers_sce_list),by = 1)){
+        if(k == i)next() # If root and target samples are the same, we go for the next sample and skip this loop
         sce_comparative <- markers_sce_list[[k]]
         results <- data.frame(similarity_value=integer(),
                               sem=integer(),
@@ -108,9 +116,11 @@ cluster_fold_similarity <- function(sce_list = NULL,
             top_genes <- head(colnames(mat)[order(mat_colmean,decreasing = T)],n=top_n_genes)
             n_negative <- sum(mat_colmean < 0)
             n_positive <- sum(mat_colmean > 0)
-            sem <- round(sd(mat_colmean) / sqrt(n_negative + n_positive), digits = 4) 
+            sem <- round(sd(mat_colmean) / sqrt(n_negative + n_positive), digits = 4)
+            weight <- round( sqrt(abs(n_negative - n_positive) / (n_negative + n_positive)), digits = 4) # Weight based on the number of concordant-discordant FCs
             # We divide the similarity by the SEM value -> then we scale it using sqrt and conserve the sign
-            similarity_weighted <- sqrt(abs(sum(mat_colmean)) / sem) * sign(sum(mat_colmean))
+            # similarity_weighted <- sqrt(abs(sum(mat_colmean)) / sem) * sign(sum(mat_colmean))
+            similarity_weighted <- sqrt(abs(sum(mat_colmean))) * weight * sign(sum(mat_colmean))
             # Save results
             for (g in top_genes){
               results[nrow(results)+1,] <- list(
