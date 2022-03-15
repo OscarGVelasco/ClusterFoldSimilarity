@@ -42,4 +42,5 @@ load("pancreas.sc.list.RData")
 simi.table <- ClusterFoldSimilarity::cluster_fold_similarity(sce_list = pancreas.sc.list)
 ```
 
-
+<object data="https://github.com/OscarGVelasco/ClusterFoldSimilarity/tree/main/README_files/Figure_S1_supp.pdf" type="application/pdf" width="100%"> 
+</object>
