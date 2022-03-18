@@ -1,12 +1,23 @@
 # ClusterFoldSimilarity
 Calculate cluster similarity between clusters from different single cell datasets/batches/samples.
 
+Full information about the method can be read on the original paper:
+
+*A single-cell clusters similarity measure for different batches, datasets, and samples
+Óscar González-Velasco, Elena Sanchez-Luis, Enrique De La Rosa, José M. Sanchez-Santos, Javier De Las Rivas
+bioRxiv 2022.03.14.483731; doi: https://doi.org/10.1101/2022.03.14.483731*
+
 This package is compatible with the most used single-cell objects: **Seurat** and **SingleCellExperiment**. 
 
 Installation
 -----------------------------
 
-1. The package binaries are available for download on github:
+1. The package can be installed from R software using devtools:
+``` r
+library(devtools)
+install_github("OscarGVelasco/ClusterFoldSimilarity")
+``` 
+2. The package binaries are available for download on github:
 https://github.com/OscarGVelasco/ClusterFoldSimilarity/blob/main/ClusterFoldSimilarity.tar.gz
 
 
