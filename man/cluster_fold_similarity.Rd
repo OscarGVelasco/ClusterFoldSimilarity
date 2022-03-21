@@ -12,7 +12,8 @@ cluster_fold_similarity(
 )
 }
 \arguments{
-\item{sce_list}{List. A list of single cell experiments. At least 2 single cell experiments are needed.}
+\item{sce_list}{List. A list of single cell experiments. At least 2 single cell experiments are needed. The objects are expected to be subsets of the original data, 
+containing the selected features (e.g. 2000 most variable genes).}
 
 \item{sample_names}{Character Vector. Specify the sample names, if not a number corresponding with its position on (sce_list).}
 

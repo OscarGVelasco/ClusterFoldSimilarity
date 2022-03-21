@@ -96,7 +96,7 @@ multi_cluster_plot <- function(sce_list = NULL,similarity_table = NULL,dim_metho
   if(!is.null(similarity_table)){ # If a similarity table is available...  
   
     for (i in seq_along(sce_list)){ # Sample loop - i
-    for (j in unique(similarity_table[sample_l==i,]$cluster_l)){ # Cluster loop - j
+    for (j in unique(similarity_table[similarity_table$sample_l==i,]$cluster_l)){ # Cluster loop - j
       # Coloring of the clusters
       if(all(data[(data$sample_id == i) & (data$cluster == j),]$color == "NA")){
         single_color <- sample(cluster_colors,size = 1)
@@ -106,7 +106,7 @@ multi_cluster_plot <- function(sce_list = NULL,similarity_table = NULL,dim_metho
       single_color <- unique(data[(data$sample_id == i) & (data$cluster == j),]$color)
       }
       
-      indx <- similarity_table[sample_l==i & cluster_l == j,c("sample_r","cluster_r")]
+      indx <- similarity_table[similarity_table$sample_l==i & similarity_table$cluster_l == j,c("sample_r","cluster_r")]
       
       indx2 <- do.call(rbind.data.frame,
                        apply(indx,1,function(x){
