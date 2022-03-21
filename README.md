@@ -81,6 +81,7 @@ hvg.ad.var.top <- getTopHVGs(dec.sce.feature, n=1000)
 ``` 
 ### 3. Dimensionality Reduction
 ``` r
+import(scater)
 # By top genes
 sce.ad.pca.top <- sce.ad[hvg.ad.var.top,]
 sce.ad.pca.top <- runPCA(sce.ad.pca.top) 
@@ -122,6 +123,7 @@ similarity.table <- ClusterFoldSimilarity::cluster_fold_similarity(sce_list = pa
 ```
 ## Multi-dimReduction plot using ClusterFoldSimilarity
 The tool is able to produce a plot of multiple dimensionality reductions plots (PCA,UMAP,tSNE) of the single-cell experiments using a color code guided by the similarity measure calculated in the previous steps.
+*We need to provide to the function **multi_cluster_plot()** with the similarity.table calculated in the previous step by ClusterFoldSimilarity()*
 ``` r
 ClusterFoldSimilarity::multi_cluster_plot(sce_list = pancreas.sc.list,similarity_table = similarity.table,dim_method="UMAP")
 ```
