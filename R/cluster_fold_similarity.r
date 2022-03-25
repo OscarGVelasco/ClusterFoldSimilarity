@@ -11,14 +11,22 @@
 #' @param top_n Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1).
 #' @param top_n_genes Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison (default 1).
 #' 
-#' @return The function returns a \link[S4Vectors]{DataFrame} containing the best top similarities between all possible pairs of single cell samples.
-#' similarity_value=integer(): The top similarity value calculated between sample_l:cluster_l and sample_r. 
-#' sem=integer(): Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes.
-#' sample_l=integer(): Sample left, the sample source which is being compared. 
-#' cluster_l=integer(): Cluster left, the cluster source which is being compared.
-#' sample_r=integer(): Sample right, the sample target which is being compared with sample_l.
-#' cluster_r=integer(): Cluster right, the cluster target which is being compared with cluster_l.
-#' top_gene_conserved=character(): The gene that showed most similar between cluster_l & cluster_r.
+#' @return The function returns a \linkS4class{DataFrame} containing the best top similarities between all possible pairs of single cell samples. Column values are:
+#' \tabular{ll}{
+#'    \code{similarity_value} \tab The top similarity value calculated between sample_l:cluster_l and sample_r. \cr
+#'    \tab \cr
+#'    \code{sem} \tab Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes. \cr
+#'    \tab \cr
+#'    \code{sample_l} \tab Sample left, the sample source which is being compared.  \cr
+#'    \tab \cr
+#'    \code{cluster_l} \tab Cluster left, the cluster source which is being compared. \cr
+#'    \tab \cr
+#'    \code{sample_r} \tab Sample right, the sample target which is being compared with sample_l. \cr
+#'    \tab \cr
+#'    \code{cluster_r} \tab Cluster right, the cluster target which is being compared with cluster_l. \cr
+#'    \tab \cr
+#'    \code{top_gene_conserved} \tab The gene that showed most similar between cluster_l & cluster_r. \cr
+#' }
 #' 
 #' @export
 cluster_fold_similarity <- function(sce_list = NULL,
