@@ -118,12 +118,12 @@ print(cluster_umap)
 ``` r
 # We add the previous single-cell experiments to a list.
 sce_list <- list(...)
-similarity.table <- ClusterFoldSimilarity::cluster_fold_similarity(sce_list = pancreas.sc.list)
+similarity.table <- ClusterFoldSimilarity::cluster_fold_similarity(sce_list = sce_list)
 ```
 ## Multi-dimReduction plot using ClusterFoldSimilarity
 The tool is able to produce a plot of multiple dimensionality reductions plots (PCA,UMAP,tSNE) of the single-cell experiments using a color code guided by the similarity measure calculated in the previous steps.
-*We need to provide to the function **multi_cluster_plot()** with the similarity.table calculated in the previous step by ClusterFoldSimilarity()*
+*We need to provide to the function **multi_cluster_plot()** with the **similarity.table** calculated in the previous step by ClusterFoldSimilarity()*
 ``` r
-ClusterFoldSimilarity::multi_cluster_plot(sce_list = pancreas.sc.list,similarity_table = similarity.table,dim_method="UMAP")
+ClusterFoldSimilarity::multi_cluster_plot(sce_list = sce_list,similarity_table = similarity.table,dim_method="UMAP")
 ```
 ![](README_files/ClusterFoldMultiUMAP.png)
