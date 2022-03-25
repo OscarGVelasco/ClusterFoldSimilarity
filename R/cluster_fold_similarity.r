@@ -11,7 +11,14 @@
 #' @param top_n Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1).
 #' @param top_n_genes Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison (default 1).
 #' 
-#' @return A dataframe containing the best top similarities between all possible pairs of single cell samples.
+#' @return The function returns a \link[S4Vectors]{DataFrame} containing the best top similarities between all possible pairs of single cell samples.
+#' similarity_value=integer(): The top similarity value calculated between sample_l:cluster_l and sample_r. 
+#' sem=integer(): Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes.
+#' sample_l=integer(): Sample left, the sample source which is being compared. 
+#' cluster_l=integer(): Cluster left, the cluster source which is being compared.
+#' sample_r=integer(): Sample right, the sample target which is being compared with sample_l.
+#' cluster_r=integer(): Cluster right, the cluster target which is being compared with cluster_l.
+#' top_gene_conserved=character(): The gene that showed most similar between cluster_l & cluster_r.
 #' 
 #' @export
 cluster_fold_similarity <- function(sce_list = NULL,
