@@ -20,7 +20,6 @@ install_github("OscarGVelasco/ClusterFoldSimilarity")
 2. The package binaries are available for download on github:
 https://github.com/OscarGVelasco/ClusterFoldSimilarity/blob/main/ClusterFoldSimilarity.tar.gz
 
-
 # Example using pancreatic scRNA-Seq
 -----------------------------
 We will use **a set of single-cell RNA-Seq transcriptomic data from human pancreatic samples** included on the R Bioconductor package **scRNAseq** (Risso D, C. M. (2021). scRNAseq: Collection of Public Single-Cell RNA-Seq Datasets. R package version 2.8.0.)*
