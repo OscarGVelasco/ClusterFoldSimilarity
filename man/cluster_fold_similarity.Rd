@@ -24,15 +24,15 @@ containing the selected features (e.g. 2000 most variable genes).}
 \value{
 The function returns a \linkS4class{DataFrame} containing the best top similarities between all possible pairs of single cell samples. Column values are:
 \tabular{ll}{
-   \code{similarity_value} \tab The top similarity value calculated between sample_l:cluster_l and sample_r. \cr
+   \code{similarity_value} \tab The top similarity value calculated between dataset_l:cluster_l and dataset_r. \cr
    \tab \cr
    \code{sem} \tab Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes. \cr
    \tab \cr
-   \code{sample_l} \tab Sample left, the sample source which is being compared.  \cr
+   \code{dataset_l} \tab Sample left, the sample source which is being compared.  \cr
    \tab \cr
    \code{cluster_l} \tab Cluster left, the cluster source which is being compared. \cr
    \tab \cr
-   \code{sample_r} \tab Sample right, the sample target which is being compared with sample_l. \cr
+   \code{dataset_r} \tab Sample right, the sample target which is being compared with dataset_l. \cr
    \tab \cr
    \code{cluster_r} \tab Cluster right, the cluster target which is being compared with cluster_l. \cr
    \tab \cr

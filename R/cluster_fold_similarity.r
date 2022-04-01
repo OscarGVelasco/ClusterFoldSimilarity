@@ -13,15 +13,15 @@
 #' 
 #' @return The function returns a \linkS4class{DataFrame} containing the best top similarities between all possible pairs of single cell samples. Column values are:
 #' \tabular{ll}{
-#'    \code{similarity_value} \tab The top similarity value calculated between sample_l:cluster_l and sample_r. \cr
+#'    \code{similarity_value} \tab The top similarity value calculated between dataset_l:cluster_l and dataset_r. \cr
 #'    \tab \cr
 #'    \code{sem} \tab Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes. \cr
 #'    \tab \cr
-#'    \code{sample_l} \tab Sample left, the sample source which is being compared.  \cr
+#'    \code{dataset_l} \tab Sample left, the sample source which is being compared.  \cr
 #'    \tab \cr
 #'    \code{cluster_l} \tab Cluster left, the cluster source which is being compared. \cr
 #'    \tab \cr
-#'    \code{sample_r} \tab Sample right, the sample target which is being compared with sample_l. \cr
+#'    \code{dataset_r} \tab Sample right, the sample target which is being compared with dataset_l. \cr
 #'    \tab \cr
 #'    \code{cluster_r} \tab Cluster right, the cluster target which is being compared with cluster_l. \cr
 #'    \tab \cr
@@ -58,19 +58,19 @@ cluster_fold_similarity <- function(sce_list = NULL,
   }
   summary_results <- data.frame(similarity_value=integer(),
                                 sem=integer(),
-                                sample_l=integer(), 
+                                dataset_l=integer(), 
                                 cluster_l=integer(),
-                                sample_r=integer(),
+                                dataset_r=integer(),
                                 cluster_r=integer(),
                                 top_gene_conserved=character(),
                                 stringsAsFactors=FALSE)
   # Select common genes in all samples 
   features <- Reduce(intersect,lapply(sce_list,function(x){rownames(x)}))
   if(length(features) == 0){
-    stop("No common genes between samples. Please, select a subset of common variable genes among all samples.")
+    stop("No common genes between datasets. Please, select a subset of common variable genes among all datasets.")
   }
   if(length(features) < 100){
-    warning(paste("The number of common genes among samples is: ",length(features),". More than 100 common genes among all samples is recomended.",sep = ""))
+    warning(paste("The number of common genes among datasets is: ",length(features),". More than 100 common genes among all datasets is recomended.",sep = ""))
   }
   # Control filtered level factors using droplevels
   for (i in length(sce_list)){
@@ -114,9 +114,9 @@ cluster_fold_similarity <- function(sce_list = NULL,
         sce_comparative <- markers_sce_list[[k]]
         results <- data.frame(similarity_value=integer(),
                               sem=integer(),
-                              sample_l=integer(), 
+                              dataset_l=integer(), 
                               cluster_l=integer(),
-                              sample_r=integer(),
+                              dataset_r=integer(),
                               cluster_r=integer(),
                               top_gene_conserved=character(),
                               stringsAsFactors=FALSE)
@@ -124,7 +124,7 @@ cluster_fold_similarity <- function(sce_list = NULL,
             # The sample for comparing will be the sample_i+1
             comparative <- sce_comparative[[n]]
             # Comparative = single cluster from sample_i+1
-            message(paste("Comparing [ cluster",cluster_names[[i]][j],"] from sample:",i,"with [ cluster:",cluster_names[[k]][n] ,"] from sample:",k))
+            message(paste("Comparing [ cluster",cluster_names[[i]][j],"] from dataset:",i,"with [ cluster:",cluster_names[[k]][n] ,"] from dataset:",k))
             # Create a matrix A and B to compute the dotproduct of all possible combinations of cluster comparison FoldChanges for each gene
             mat <- foldchange_composition(root[features,],comparative[features,])
             mat_colmean <- colMeans(mat)
@@ -141,9 +141,9 @@ cluster_fold_similarity <- function(sce_list = NULL,
               results[nrow(results)+1,] <- list(
                 similarity_weighted, # Similarity_value
                 sem, # Standar Error of the Mean
-                i, # Sample_l
+                i, # dataset_l
                 cluster_names[[i]][j], # Cluster_l (left; source of comparison) -> j corresponding to the loop
-                k, # Sample_r
+                k, # dataset_r
                 cluster_names[[k]][n], # Cluster_r (right; target of comparison) -> n corresponding to the internal loop
                 g) # Top gene conserved
             }
@@ -153,6 +153,8 @@ cluster_fold_similarity <- function(sce_list = NULL,
       }
     }
   }
+  message("Ploting graph using the similarity values of clusters.")
+  plot_clusters_graph(similarity.table = summary_results)
   message("Returning similarity table.")
   return(summary_results)
 }
