@@ -30,8 +30,9 @@ plot_clusters_graph <- function(similarity.table = NULL){
                       "#FC8D62", "#045A8D", "#02818A", "#8C96C6", "#CCEBC5", "#E31A1C", "#78C679", "#A8DDB5", "#FDD49E", "#DE77AE", "#B3B3B3", "#EF6548",
                       "#D73027")
   cl_codes <- sample(cluster_colors,size = length(unique(df$dataset_l)))
-  par(mar=c(2,1,1,1));base::plot(g, vertex.label = V(g)$name, edge.arrow.size = .3, 
+  par(mar=c(1,5,3,1));base::plot(g, vertex.label = V(g)$name, edge.arrow.size = .3, 
        vertex.color = rep(cl_codes, cl),edge.color = "black",
        vertex.size = 12, vertex.frame.color = NA, vertex.label.color = "black", 
-       vertex.label.cex = 0.6, vertex.label.dist = 0, edge.curved = 0.2);legend('topleft', legend = paste0('Dataset ', 1:length(unique(df$dataset_l))),fill = cl_codes)
+       vertex.label.cex = 0.6, vertex.label.dist = 0, edge.curved = 0.2);legend('topleft', legend = paste0('Dataset ', 1:length(unique(df$dataset_l))),
+                                                                                fill = cl_codes,xpd=TRUE, inset=c(-0.2,0),)
 }
