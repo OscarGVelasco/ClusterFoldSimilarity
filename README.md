@@ -9,6 +9,21 @@ bioRxiv 2022.03.14.483731; doi: https://doi.org/10.1101/2022.03.14.483731*
 
 This package is compatible with the most used single-cell objects: **Seurat** and **SingleCellExperiment**. 
 
+![](README_files/ClusterFoldSimilarity_pipeline.png)
+
+*Figure: Pipeline representation of the similarity measurement done by ClusterFoldSimilarity. A:
+Foldchanges (FC) are calculated between all possible combination of clusters for each dataset, figure
+shows the FC calculation for cluster 1 in both datasets 1 and 2 in a UMAP corresponding with
+pancreas cells. B: The scalar product of the computed FCs between all pairs is calculated. C:
+Representation of the vectorial space of FCs and their product (in the graphic, a and b represent FCs
+of a same gene between clusters), FC that points in the same direction will have positive product sign,
+meanwhile opposite FC will have negative product sign. D: Table with the similarity values and output
+information given by ClusterFoldSimilarity. E: UMAP representation of two pancreatic datasets with
+annotated cell-types. Note that exact cell-type clusters are matched together by the table given at D. F:
+Graph plot made by ClusterFoldSimilarity using the similarity values calculated (given at table D),
+nodes correspond with clusters from a specific dataset, edges correspond with the similarity value,
+arrows point in the direction of the similarity relationship.*
+
 Installation
 -----------------------------
 
