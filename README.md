@@ -9,6 +9,13 @@ bioRxiv 2022.03.14.483731; doi: https://doi.org/10.1101/2022.03.14.483731*
 
 This package is compatible with the most used single-cell objects: **Seurat** and **SingleCellExperiment**. 
 
+```mermaid
+stateDiagram-v2
+FC: calculate FoldChange
+[*] --> FC: cluster i from dataset n
+FC --> FC: compare with cluster i+1 from dataset n
+```
+
 ![](README_files/ClusterFoldSimilarity_pipeline.png)
 
 *Figure: Pipeline representation of the similarity measurement done by ClusterFoldSimilarity. A:
