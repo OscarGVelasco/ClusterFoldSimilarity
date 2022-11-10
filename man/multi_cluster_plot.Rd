@@ -4,10 +4,17 @@
 \alias{multi_cluster_plot}
 \title{Plot several single-cell datasets/samples dimensionality reductions (PCA, UMAP, tSNE) in a single plot 3D plot, each layer corresponding to a dataset/sample.}
 \usage{
-multi_cluster_plot(sce_list = NULL, dim_method = "PCA", pdf_name = NULL)
+multi_cluster_plot(
+  sce_list = NULL,
+  similarity_table = NULL,
+  dim_method = "PCA",
+  pdf_name = NULL
+)
 }
 \arguments{
 \item{sce_list}{List. A list of single cell experiments. At least 2 single cell experiments are needed.}
+
+\item{similarity_table}{DataFrame. Optional. A similarity table previously calculated using ClusterFoldSimilarity function.}
 
 \item{dim_method}{Character. Specify the dimensionality reduction used, either PCA, UMAP or tSNE. Default: PCA.}
 

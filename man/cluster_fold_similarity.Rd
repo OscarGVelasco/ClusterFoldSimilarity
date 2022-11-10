@@ -12,7 +12,8 @@ cluster_fold_similarity(
 )
 }
 \arguments{
-\item{sce_list}{List. A list of single cell experiments. At least 2 single cell experiments are needed.}
+\item{sce_list}{List. A list of single cell experiments. At least 2 single cell experiments are needed. The objects are expected to be subsets of the original data, 
+containing the selected features (e.g. 2000 most variable genes).}
 
 \item{sample_names}{Character Vector. Specify the sample names, if not a number corresponding with its position on (sce_list).}
 
@@ -21,7 +22,22 @@ cluster_fold_similarity(
 \item{top_n_genes}{Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison (default 1).}
 }
 \value{
-A dataframe containing the best top similarities between all possible pairs of single cell samples.
+The function returns a \linkS4class{DataFrame} containing the best top similarities between all possible pairs of single cell samples. Column values are:
+\tabular{ll}{
+   \code{similarity_value} \tab The top similarity value calculated between dataset_l:cluster_l and dataset_r. \cr
+   \tab \cr
+   \code{sem} \tab Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes. \cr
+   \tab \cr
+   \code{dataset_l} \tab Sample left, the sample source which is being compared.  \cr
+   \tab \cr
+   \code{cluster_l} \tab Cluster left, the cluster source which is being compared. \cr
+   \tab \cr
+   \code{dataset_r} \tab Sample right, the sample target which is being compared with dataset_l. \cr
+   \tab \cr
+   \code{cluster_r} \tab Cluster right, the cluster target which is being compared with cluster_l. \cr
+   \tab \cr
+   \code{top_gene_conserved} \tab The gene that showed most similar between cluster_l & cluster_r. \cr
+}
 }
 \description{
 `cluster_fold_similarity()` returns a dataframe containing the best top similarities between all possible pairs of single cell samples.
