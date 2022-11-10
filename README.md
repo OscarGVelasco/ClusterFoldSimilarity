@@ -12,8 +12,15 @@ This package is compatible with the most used single-cell objects: **Seurat** an
 ```mermaid
 stateDiagram-v2
 FC: calculate FoldChange
+MT: pairwise dot-product
+SM: summarize value per feature
+SMC: calculate similarity value
 [*] --> FC: cluster i from dataset n
-FC --> FC: compare with cluster i+1 from dataset n
+FC --> FC: compare with cluster i+1 from same dataset
+FC --> MT: FoldChanges from cluster i of dataset n
+FC --> MT: FoldChanges from cluster i of dataset n+1
+MT --> SM: calculate mean
+SM --> SMC: sum features
 ```
 
 ![](README_files/ClusterFoldSimilarity_pipeline.png)
@@ -142,10 +149,3 @@ print(cluster_umap)
 sce_list <- list(...)
 similarity.table <- ClusterFoldSimilarity::cluster_fold_similarity(sce_list = sce_list)
 ```
-## Multi-dimReduction plot using ClusterFoldSimilarity
-The tool is able to produce a plot of multiple dimensionality reductions plots (PCA,UMAP,tSNE) of the single-cell experiments using a color code guided by the similarity measure calculated in the previous steps.
-*We need to provide to the function **multi_cluster_plot()** with the **similarity.table** calculated in the previous step by ClusterFoldSimilarity()*
-``` r
-ClusterFoldSimilarity::multi_cluster_plot(sce_list = sce_list,similarity_table = similarity.table,dim_method="UMAP")
-```
-![](README_files/ClusterFoldMultiUMAP.png)
