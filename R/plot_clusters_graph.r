@@ -13,40 +13,16 @@
 #' 
 #' @export
 plot_clusters_graph <- function(similarity.table = NULL){
-<<<<<<< HEAD
-  
-  # We will use the similarity matrix to create a graph
-  if(is.null(similarity.table) | !is.data.frame(similarity.table)){
-    stop("A similarity table from clusterFoldSimilarity was not found.")
-  }  
-=======
 
   # require(igraph)
   # We will use the similarity matrix to create a graph
   if(is.null(similarity.table) | !is.data.frame(similarity.table)){
     stop("A similarity table from clusterFoldSimilarity was not found.")
   }
->>>>>>> 605589e (bioconductor version 1)
   df <- similarity.table
   from <- paste(paste0("D", df$dataset_l), paste0("C", df$cluster_l), sep = ".")
   to <- paste(paste0("D", df$dataset_r), paste0("C", df$cluster_r), sep = ".")
   # igraph
-<<<<<<< HEAD
-  require(igraph,quietly = T)
-  relations <- data.frame(from = from, to = to, sim = df$similarity_value)
-  g <- igraph::graph_from_data_frame(relations, directed = T)
-  cl <- as.numeric(apply(table(df$dataset_l, df$cluster_l) != 0, 1, sum))
-  cluster_colors <- c("#7BCCC4","#FEB24C","#74C476","#FDDBC7","#D0D1E6","#FDBF6F","#D1E5F0","#67A9CF","#E08214","#800026","#006837","#0570B0",
-                      "#FC8D62", "#045A8D", "#02818A", "#8C96C6", "#CCEBC5", "#E31A1C", "#78C679", "#A8DDB5", "#FDD49E", "#DE77AE", "#B3B3B3", "#EF6548",
-                      "#D73027")
-  cl_codes <- sample(cluster_colors,size = length(unique(df$dataset_l)))
-  par(mar=c(1,5,3,1));base::plot(g, vertex.label = V(g)$name, edge.arrow.size = .3, 
-       vertex.color = rep(cl_codes, cl),edge.color = "black",
-       vertex.size = 12, vertex.frame.color = NA, vertex.label.color = "black", 
-       vertex.label.cex = 0.6, vertex.label.dist = 0, edge.curved = 0.2);legend('topleft', legend = paste0('Dataset ', 1:length(unique(df$dataset_l))),
-                                                                                fill = cl_codes,xpd=TRUE, inset=c(-0.2,0),)
-}
-=======
   relations <- data.frame(from = from, to = to, sim = df$similarity_value)
   g <- igraph::graph_from_data_frame(relations, directed = TRUE)
   cl <- as.numeric(apply(table(df$dataset_l, df$cluster_l) != 0, 1, sum))
@@ -61,4 +37,3 @@ plot_clusters_graph <- function(similarity.table = NULL){
   legend('topleft', legend = paste0('Dataset ', seq_len(length(unique(df$dataset_l)))),
          fill = cl_codes, xpd=TRUE, inset=c(-0.2,-0.2),cex=0.8)
 }
->>>>>>> 605589e (bioconductor version 1)

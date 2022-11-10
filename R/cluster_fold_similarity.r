@@ -39,22 +39,14 @@ cluster_fold_similarity <- function(sce_list = NULL,
   is_seurat <- FALSE
   is_sce <- FALSE
   # Function starts by loading dependencies
-<<<<<<< HEAD
-  if(class(sce_list[[1]]) == "Seurat" ){
-=======
   if(is(sce_list[[1]], 'Seurat')){
->>>>>>> 605589e (bioconductor version 1)
     if (!requireNamespace("Seurat", quietly = TRUE)) {
       stop("Package \"Seurat\" needed for this function to work. Please install it.",
            call. = FALSE)}
     is_seurat <- TRUE
     is_sce <- FALSE
   }
-<<<<<<< HEAD
-  if(class(sce_list[[1]]) == "SingleCellExperiment" ){
-=======
   if(is(sce_list[[1]], 'SingleCellExperiment')){
->>>>>>> 605589e (bioconductor version 1)
     if (!requireNamespace("SingleCellExperiment", quietly = TRUE)) {
       stop("Package \"SingleCellExperiment\" needed for this function to work. Please install it.",
            call. = FALSE)}
@@ -75,27 +67,16 @@ cluster_fold_similarity <- function(sce_list = NULL,
   # Select common genes in all samples 
   features <- Reduce(intersect,lapply(sce_list,function(x){rownames(x)}))
   if(length(features) == 0){
-<<<<<<< HEAD
-    stop("No common genes between datasets. Please, select a subset of common variable genes among all datasets.")
-  }
-  if(length(features) < 100){
-    warning(paste("The number of common genes among datasets is: ",length(features),". More than 100 common genes among all datasets is recomended.",sep = ""))
-=======
     stop("No common features between datasets. Please, select a subset of common variable features among all datasets.")
   }
   if(length(features) < 100){
     warning("The number of common genes among datasets is: ",length(features),". More than 100 common genes among all datasets is recomended.")
->>>>>>> 605589e (bioconductor version 1)
   }
   # Control filtered level factors using droplevels
   for (i in length(sce_list)){
     if(is_sce){
       if(is.null(SingleCellExperiment::colLabels(sce_list[[i]]))){
-<<<<<<< HEAD
-        stop(paste("No clusters specified on colLabels on sample",i))
-=======
         stop("No clusters specified on colLabels on sample ",i)
->>>>>>> 605589e (bioconductor version 1)
       }
       SingleCellExperiment::colLabels(sce_list[[i]]) <- droplevels(SingleCellExperiment::colLabels(sce_list[[i]]))
     }
@@ -121,11 +102,7 @@ cluster_fold_similarity <- function(sce_list = NULL,
     })
   }
   # Main loop - samples
-<<<<<<< HEAD
-  for (i in 1:(length(markers_sce_list))){
-=======
   for (i in seq_len(length(markers_sce_list))){
->>>>>>> 605589e (bioconductor version 1)
     # Pick a sample in ascending order
     y <- markers_sce_list[[i]]
     for (j in seq_along(y)){
@@ -147,20 +124,6 @@ cluster_fold_similarity <- function(sce_list = NULL,
             # The sample for comparing will be the sample_i+1
             comparative <- sce_comparative[[n]]
             # Comparative = single cluster from sample_i+1
-<<<<<<< HEAD
-            message(paste("Comparing [ cluster",cluster_names[[i]][j],"] from dataset:",i,"with [ cluster:",cluster_names[[k]][n] ,"] from dataset:",k))
-            # Create a matrix A and B to compute the dotproduct of all possible combinations of cluster comparison FoldChanges for each gene
-            mat <- foldchange_composition(root[features,],comparative[features,])
-            mat_colmean <- colMeans(mat)
-            top_genes <- head(colnames(mat)[order(mat_colmean,decreasing = T)],n=top_n_genes)
-            n_negative <- sum(mat_colmean < 0)
-            n_positive <- sum(mat_colmean > 0)
-            sem <- round(sd(mat_colmean) / sqrt(n_negative + n_positive), digits = 4)
-            weight <- round( sqrt(abs(n_negative - n_positive) / (n_negative + n_positive)), digits = 4) # Weight based on the number of concordant-discordant FCs
-            # We divide the similarity by the SEM value -> then we scale it using sqrt and conserve the sign
-            # similarity_weighted <- sqrt(abs(sum(mat_colmean)) / sem) * sign(sum(mat_colmean))
-            similarity_weighted <- sqrt(abs(sum(mat_colmean))) * weight * sign(sum(mat_colmean))
-=======
             message("Comparing [cluster ",cluster_names[[i]][j],"] from dataset: ",i," with [cluster: ",cluster_names[[k]][n] ,"] from dataset: ",k)
             # Create a matrix A and B to compute the dotproduct of all possible combinations of cluster comparison FoldChanges for each gene
             mat <- foldchange_composition(root[features,],comparative[features,])
@@ -176,7 +139,6 @@ cluster_fold_similarity <- function(sce_list = NULL,
             # large, allowing us to penalize negative numbers as well
             weight <- round(log2(abs(n_negative - n_positive) + 1), digits = 2)
             similarity_weighted <- sqrt(abs(sum(mat_colmean)) * weight) * sign(sum(mat_colmean))
->>>>>>> 605589e (bioconductor version 1)
             # Save results
             for (g in top_genes){
               results[nrow(results)+1,] <- list(
@@ -189,11 +151,7 @@ cluster_fold_similarity <- function(sce_list = NULL,
                 g) # Top gene conserved
             }
           }
-<<<<<<< HEAD
-        results <- data.table::rbindlist(by(results,results$cluster_l,function(x){head(x[order(x[,"similarity_value"],decreasing = T),], n=top_n*top_n_genes)}))
-=======
         results <- data.table::rbindlist(by(results,results$cluster_l,function(x){head(x[order(x[,"similarity_value"],decreasing = TRUE),], n=top_n*top_n_genes)}))
->>>>>>> 605589e (bioconductor version 1)
         summary_results <- rbind.data.frame(summary_results,results)
       }
     }

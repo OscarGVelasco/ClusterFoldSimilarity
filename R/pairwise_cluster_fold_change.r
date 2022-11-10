@@ -13,23 +13,14 @@
 pairwise_cluster_fold_change <- function(x, clusters){
   divis_funct <- function(x,y) "/"(x,y) 
   clusters <- as.factor(clusters)
-<<<<<<< HEAD
-  i <- split(1:ncol(x), clusters)
-  x <- sapply(i, function(i){ rowMeans(x[,i])})
-=======
   i <- split(seq_len(ncol(x)), clusters)
   x <- vapply(i, function(i){ rowMeans(x[,i])},FUN.VALUE = double(nrow(x)))
->>>>>>> 605589e (bioconductor version 1)
   j <- expand.grid(levels(clusters),levels(clusters))
   j <- t(j[!(j[,1] == j[,2]),])[c(2,1),]
   log.folds <- log2(divis_funct(x[,j[1,]]+1, x[,j[2,]]+1))
   colnames(log.folds) <- paste("logFC",j[1,], j[2,], sep = '.')
   n <- length(levels(clusters))-1
   nr <- ncol(log.folds)
-<<<<<<< HEAD
-  fc.values <- lapply(split.data.frame(t(log.folds), rep(1:ceiling(nr/n), each=n, length.out=nr)),t)
-=======
   fc.values <- lapply(split.data.frame(t(log.folds), rep(seq_len(ceiling(nr/n)), each=n, length.out=nr)),t)
->>>>>>> 605589e (bioconductor version 1)
   return(fc.values)
 }

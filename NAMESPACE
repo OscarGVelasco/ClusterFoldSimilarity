@@ -2,13 +2,6 @@
 
 export(cluster_fold_similarity)
 export(foldchange_composition)
-<<<<<<< HEAD
-export(multi_cluster_plot)
-export(pairwise_cluster_fold_change)
-export(plot_clusters_graph)
-import(scatterplot3d)
-=======
 export(pairwise_cluster_fold_change)
 export(plot_clusters_graph)
 
->>>>>>> 605589e (bioconductor version 1)

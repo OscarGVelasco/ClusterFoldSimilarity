@@ -1,18 +1,5 @@
 Package: ClusterFoldSimilarity
 Type: Package
-<<<<<<< HEAD
-Title: Calculate similarity of clusters from different single cell samples using foldchanges.
-Version: 0.1
-Author: Oscar Gonzalez-Velasco <oscargv@usal.es>
-Maintainer: Oscar Gonzalez-Velasco <oscargv@usal.es>
-Description: Calculate similarity of clusters from different single cell samples using foldchanges.
-License: GPL (>= 2)
-Encoding: UTF-8
-LazyData: true
-Imports: scatterplot3d
-Suggests: Seurat, SingleCellExperiment
-RoxygenNote: 7.1.2
-=======
 Title: Calculate similarity of clusters from different single cell samples using foldchanges
 Version: 0.99.0
 Authors@R: person("Oscar", "Gonzalez-Velasco",
@@ -26,4 +13,3 @@ Import: igraph
 Suggests: Seurat, SingleCellExperiment
 RoxygenNote: 7.1.2
 biocViews: SingleCell, Clustering, FeatureExtraction, GraphAndNetwork, GeneTarget
->>>>>>> 605589e (bioconductor version 1)
