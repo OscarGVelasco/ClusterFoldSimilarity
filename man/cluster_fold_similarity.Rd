@@ -17,9 +17,9 @@ containing the selected features (e.g. 2000 most variable genes).}
 
 \item{sample_names}{Character Vector. Specify the sample names, if not a number corresponding with its position on (sce_list).}
 
-\item{top_n}{Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1).}
+\item{top_n}{Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1). If set to Inf, then all similarity values from all possible pairs of clusters are returned.}
 
-\item{top_n_genes}{Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison (default 1).}
+\item{top_n_genes}{Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison (default 1). If top_n = Inf then top_n_genes is automatically set to 1.}
 }
 \value{
 The function returns a \linkS4class{DataFrame} containing the best top similarities between all possible pairs of single cell samples. Column values are:
@@ -28,13 +28,13 @@ The function returns a \linkS4class{DataFrame} containing the best top similarit
    \tab \cr
    \code{sem} \tab Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes. \cr
    \tab \cr
-   \code{dataset_l} \tab Sample left, the sample source which is being compared.  \cr
+   \code{dataset_l} \tab Dataset left, the dataset/sample which has been used to be compared.  \cr
    \tab \cr
-   \code{cluster_l} \tab Cluster left, the cluster source which is being compared. \cr
+   \code{cluster_l} \tab Cluster left, the cluster source from dataset_l which has been compared. \cr
    \tab \cr
-   \code{dataset_r} \tab Sample right, the sample target which is being compared with dataset_l. \cr
+   \code{dataset_r} \tab Dataset right, the dataset/sample used for comparison against dataset_l. \cr
    \tab \cr
-   \code{cluster_r} \tab Cluster right, the cluster target which is being compared with cluster_l. \cr
+   \code{cluster_r} \tab Cluster right, the cluster target from dataset_r which is being compared with the cluster_l from dataset_l. \cr
    \tab \cr
    \code{top_gene_conserved} \tab The gene that showed most similar between cluster_l & cluster_r. \cr
 }

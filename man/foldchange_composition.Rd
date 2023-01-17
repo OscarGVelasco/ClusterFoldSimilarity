@@ -18,6 +18,7 @@ A dataframe containing the hadamard product of all the possible combinations of 
 `foldchange_composition()` returns a dataframe containing the best top similarities between all possible pairs of single cell samples.
 }
 \details{
-This function will perform the dot product of each possible combination of foldchanges, by constructing two dataframes, one with the source cluster's foldchanges and
-the other with the foldchange values of a target sample's cluster. The computation of all the possible combinations is the hadamard product of the matrix.
+This function will perform the dot product of each possible combination of foldchanges, by constructing two dataframes: 
+one with the source cluster's foldchanges and the other with the foldchange values of a target sample's cluster.
+The computation of all the possible combinations is the hadamard product of the matrix.
 }

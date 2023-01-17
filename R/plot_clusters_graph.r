@@ -26,9 +26,9 @@ plot_clusters_graph <- function(similarity.table = NULL){
   relations <- data.frame(from = from, to = to, sim = df$similarity_value)
   g <- igraph::graph_from_data_frame(relations, directed = TRUE)
   cl <- as.numeric(apply(table(df$dataset_l, df$cluster_l) != 0, 1, sum))
-  cluster_colors <- c("#FDD49E", "#DE77AE","#86608E","#D5BADB","#3C7DA6","#7EB6D9","#D9E8F5","#4AA147","#92C791",
-              "#DBECDA","#D94D1A","#F28D35","#F2D377")
-  cl_codes <- sample(cluster_colors,size = length(unique(df$dataset_l)))
+  cluster_colors <- c("#FDD49E", "#D5BADB","#7EB6D9","#DBECDA","#F28D35","#4AA147","#86608E","#3C7DA6","#DE77AE","#D9E8F5","#92C791",
+              "#D94D1A","#F2D377")
+  cl_codes <- cluster_colors[1:length(unique(df$dataset_l))]
   par(mar=c(1,5,5,1));
   base::plot(g, vertex.label = igraph::V(g)$name, edge.arrow.size = .3, 
        vertex.color = rep(cl_codes, cl),edge.color = "black",
