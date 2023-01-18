@@ -35,6 +35,7 @@ install_github("OscarGVelasco/ClusterFoldSimilarity")
 2. The package binaries are available for download on github:
 https://github.com/OscarGVelasco/ClusterFoldSimilarity/blob/main/ClusterFoldSimilarity_0.99.0.tar.gz
 
+
 Introduction
 -----------------------------
 
@@ -51,26 +52,31 @@ Typically `ClusterFoldSimilarity` will receive as input either a list of two or 
 
 `ClusterFoldSimilarity` will automatically look inside these objects for normalized data (`GetAssayData(assay, slot = "data")` and **cluster or label information** `Idents()` for `r Biocpkg("Seurat")` and `colLabels()` for `r Biocpkg("SingleCellExperiment")` ).
 
+For the purpose of this example, we will use the package scRNAseq that contains several single-cell datasets, including samples from mouse brain.
+
 ```{r construct }
 library(Seurat)
 library(scRNAseq)
-# We will use the package scRNAseq that contains several single-cell datasets, including samples from mouse brain:
+
 # Mouse brain single-cell RNA-seq 1 from Romanov et. al.
 mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = T,location = F)
 colnames(mouse.brain.romanov) <- colData(mouse.brain.romanov)$cellID
 rownames(colData(mouse.brain.romanov)) <- colData(mouse.brain.romanov)$cellID
-brain.sc.1.seurat <- CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
-table(brain.sc.1.seurat@meta.data$level1.class)
+singlecell.1.seurat <- CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
+
 # Mouse brain single-cell RNA-seq 2 from Zeisel et. al.
 mouse.brain.zei <- scRNAseq::ZeiselBrainData(ensembl = T,location = F)
-brain.sc.2.seurat <- CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
-table(brain.sc.2.seurat@meta.data$level1class)
+singlecell.2.seurat <- CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
+```
 
-brain.sc.list <- list(brain.sc.1.seurat,brain.sc.2.seurat)
+Normalize and identify variable features for each dataset independently
+*Note: these steps should be done tailored to each independent dataset, here we apply the same parameters for the sake of simplicity:*
 
-# Normalize and identify variable features for each dataset independently
-# Note: these steps should be done tailored to each independent dataset, here we apply the same parameters for the sake of simplicity:
-brain.sc.list <- lapply(X = brain.sc.list, FUN = function(x){
+```{r}
+# Create a list with the unprocessed single-cell datasets
+singlecell.object.list <- list(singlecell.1.seurat,singlecell.2.seurat)
+# Apply the same processing to each dataset and return a list of single-cell analysis
+singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
   x <- NormalizeData(x)
   x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 1000)
   x <- ScaleData(x,features = VariableFeatures(x))
@@ -88,18 +94,21 @@ Once we have all of our single-cell datasets analyzed independently, we can comp
 
 ```{r}
 library(ClusterFoldSimilarity)
-similarity.table <- cluster_fold_similarity(sce_list = brain.sc.list,top_n = 1)
+similarity.table <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = 1)
 head(similarity.table)
 ```
 
-By default, `cluster_fold_similarity()` will plot a graph network that visualizes the connections between the clusters from the different datasets; it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar.
+By default, `cluster_fold_similarity()` will plot a graph network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained, the arrows point in the direction of the similarity (dataset_l:cluster_l -> dataset_r:cluster_r); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar.
 
 In this example, as we have information regarding cell-type labels, we can check how the cell types match by calculating the most abundant cell type on each of the similar clusters:
 
 ```{r}
+label1 = "level1.class" # name of label of data 1
+label2 = "level1class" # name of label of data 2
+
 apply(similarity.table[similarity.table$dataset_l == 1,],1,function(x){
-  n1 = names(which.max(table(brain.sc.list[[as.numeric(x["dataset_l"])]]@meta.data[brain.sc.list[[as.numeric(x["dataset_l"])]]@meta.data$seurat_clusters == x["cluster_l"],"level1.class"])))
-  n2 = names(which.max(table(brain.sc.list[[as.numeric(x["dataset_r"])]]@meta.data[brain.sc.list[[as.numeric(x["dataset_r"])]]@meta.data$seurat_clusters == x["cluster_r"],"level1class"])))
+  n1 = names(which.max(table(singlecell.object.list[[as.numeric(x["dataset_l"])]]@meta.data[singlecell.object.list[[as.numeric(x["dataset_l"])]]@meta.data$seurat_clusters == x["cluster_l"],label1])))
+  n2 = names(which.max(table(singlecell.object.list[[as.numeric(x["dataset_r"])]]@meta.data[singlecell.object.list[[as.numeric(x["dataset_r"])]]@meta.data$seurat_clusters == x["cluster_r"],label2])))
   return(paste("dataset 1 cluster",x["cluster_l"],"top cell.type:",n1,"VS dataset 2 cluster",x["cluster_r"],"top cell.type:",n2))
   })
 ```
@@ -107,25 +116,27 @@ apply(similarity.table[similarity.table$dataset_l == 1,],1,function(x){
 If we suspect that clusters could be related with more than one cluster of other datasets, we can retrieve the top n similarities for each cluster: 
 
 ```{r}
-similarity.table.3top <- cluster_fold_similarity(sce_list = brain.sc.list,top_n = 3)
+# Retrieve the top 3 similar cluster for each of the clusters:
+similarity.table.3top <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = 3)
 head(similarity.table.3top)
 ```
 
-If we are interested on the features that contribute to the similarity, we can retrieve the top n features: 
+If we are interested on the features that contribute the most to the similarity, we can retrieve the top n features: 
 
 ```{r}
-similarity.table.10top.features <- cluster_fold_similarity(sce_list = brain.sc.list,top_n_genes = 10)
-head(similarity.table.10top.features)
+# Retrieve the top 5 features that contribute the most to the similarity between each pair of clusters:
+similarity.table.5top.features <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n_genes = 5)
+head(similarity.table.5top.features, n=10)
 ```
 
 Retrieving all the similarity values
 -----------------------------
 
-Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one cluster that is similar to a cluster of interest, finding the most dissimilar clusters, etc).
+Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one cluster that is similar to a cluster of interest, finding the most dissimilar clusters, etc). To obtain all the values, we need to specify `top_n=Inf`:
 
 ```{r}
-similarity.table <- cluster_fold_similarity(sce_list = brain.sc.list,top_n = Inf)
-dim(similarity.table)
+similarity.table.all.values <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = Inf)
+dim(similarity.table.all.values)
 ```
 
 It can be convenient to create a matrix with all the similarity values from the comparison of two datasets:
@@ -133,14 +144,28 @@ It can be convenient to create a matrix with all the similarity values from the 
 ```{r}
 dataset1= 1
 dataset2= 2
-similarity.table.2 <- similarity.table %>% filter(dataset_l == dataset1 & dataset_r == dataset2) %>% arrange(desc(as.numeric(cluster_l)),as.numeric(cluster_r))
+similarity.table.2 <- similarity.table.all.values %>% 
+                      filter(dataset_l == dataset1 & dataset_r == dataset2) %>% 
+                      arrange(desc(as.numeric(cluster_l)),as.numeric(cluster_r))
 cls <- unique(similarity.table.2$cluster_l)
 cls2 <- unique(similarity.table.2$cluster_r)
-similarity.table.all <- t(matrix(similarity.table.2$similarity_value,ncol=length(unique(similarity.table.2$cluster_l))))
-rownames(similarity.table.all) <- cls
-colnames(similarity.table.all) <- cls2
-similarity.table.all
+similarity.matrix.all <- t(matrix(similarity.table.2$similarity_value,ncol=length(unique(similarity.table.2$cluster_l))))
+rownames(similarity.matrix.all) <- cls
+colnames(similarity.matrix.all) <- cls2
+similarity.matrix.all
 ```
+
+Similarity score calculation
+-----------------------------
+
+`ClusterFoldSimilarity` does not need to merge or harmonize the data across the datasets that we aim to analyze, which makes it less prone to data-loss or noise, and that is typical of some of these methods.
+
+
+Using ClusterFoldSimilarity for cell labeling
+-----------------------------
+
+to be continued...
+
 
 Similarity score calculation
 -----------------------------
