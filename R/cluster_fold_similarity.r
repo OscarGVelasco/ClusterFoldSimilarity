@@ -56,6 +56,10 @@ cluster_fold_similarity <- function(sce_list = NULL,
     if (!requireNamespace("SingleCellExperiment", quietly = TRUE)) {
       stop("Package \"SingleCellExperiment\" needed for this function to work. Please install it.",
            call. = FALSE)}
+    if(("normcounts" %in% names(sce_list[[1]]@assays)) == FALSE){
+      stop("\"normcounts\" not found on the SingleCellExperiment object assays. \nPlease, set the normalized counts matrix using SingleCellExperiment::normcounts(sce_object) <- normcounts ",
+           call. = FALSE)
+    }
     is_seurat <- FALSE
     is_sce <- TRUE
   }
@@ -75,8 +79,8 @@ cluster_fold_similarity <- function(sce_list = NULL,
   if(length(features) == 0){
     stop("No common features between datasets. Please, select a subset of common variable features among all datasets.")
   }
-  if(length(features) < 100){
-    warning("The number of common genes among datasets is: ",length(features),". More than 100 common genes among all datasets is recomended.")
+  if(length(features) < 50){
+    warning("The number of common features among datasets is: ",length(features),". More than 50 common features among all datasets is recomended.")
   }
   # Control filtered level factors using droplevels
   for (i in length(sce_list)){
@@ -108,7 +112,7 @@ cluster_fold_similarity <- function(sce_list = NULL,
   message("Computing fold changes.")
   if(is_sce){
     markers_sce_list <- lapply(sce_list,function(x){
-      pairwise_cluster_fold_change(x = as.matrix(SingleCellExperiment::logcounts(x)),clusters = SingleCellExperiment::colLabels(x))
+      pairwise_cluster_fold_change(x = as.matrix(SingleCellExperiment::normcounts(x)),clusters = SingleCellExperiment::colLabels(x))
       })
   }
   if(is_seurat){
