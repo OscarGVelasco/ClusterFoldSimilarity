@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2023-01-17" />
+<meta name="date" content="2023-01-18" />
 
 <title>ClusterFoldSimilarity: comparing different single-cell experiments</title>
 
@@ -1828,7 +1828,7 @@ function toggle_visibility(id1) {
 <h1 class="title toc-ignore">ClusterFoldSimilarity: comparing different single-cell experiments</h1>
 <p class="author-name">Óscar González-Velasco<span class="affil-mark">1</span></p>
 <p class="author-affiliation"><span class="affil-mark">1</span>Division of Applied Bioinformatics, German Cancer Research Center DKFZ</p>
-<h4 class="date">17 January 2023</h4>
+<h4 class="date">18 January 2023</h4>
 <h4 class="package">Package</h4>
 <p>SingleCellExperiment 1.20.0</p>
 
@@ -1844,62 +1844,78 @@ function toggle_visibility(id1) {
 <div id="using-clusterfoldsimilarity-to-find-similar-clusters-across-datasets" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Using ClusterFoldSimilarity to find similar clusters across datasets</h1>
 <p>Typically <code>ClusterFoldSimilarity</code> will receive as input either a list of two or more <em><a href="https://bioconductor.org/packages/3.16/Seurat">Seurat</a></em> objects or a list of two or more <em><a href="https://bioconductor.org/packages/3.16/SingleCellExperiment">SingleCellExperiment</a></em> objects, containing already processed data: e.g. filtered, normalized and clustered. (<em>PLEASE NOTE: this package is intended to be used with high-end-analyzed data, the better the pre-analysis the better the results <code>ClusterFoldSimilarity</code> will obtain, this includes: normalizing and taking care of local technical noise effects, removing non-variant data or selecting the top variant features, removing 0 expression features, reasonable number of clusters, etc.</em>)</p>
-<p><code>ClusterFoldSimilarity</code> will automatically look inside these objects for normalized data (<code>GetAssayData(assay, slot = &quot;data&quot;)</code> and <strong>cluster information</strong> <code>Idents()</code> for <em><a href="https://bioconductor.org/packages/3.16/Seurat">Seurat</a></em> and <code>colLabels()</code> for <em><a href="https://bioconductor.org/packages/3.16/SingleCellExperiment">SingleCellExperiment</a></em> ).</p>
-<pre class="r"><code>library(scran)
-set.seed(100)
-sc.experiment.1 &lt;- mouse.brain.zei
-lib.sce &lt;- librarySizeFactors(sc.experiment.1)
-# We choose the deconvolutional factor normalization method, we use the computed clusters to calculate the sizefactors
-clust.sce &lt;- quickCluster(sc.experiment.1) # Normalization by deconvolution to account for different cell type variability
-sc.experiment.1 &lt;- computeSumFactors(sc.experiment.1, cluster=clust.sce, min.mean=0.1)
-sc.experiment.1 &lt;- logNormCounts(sc.experiment.1) # Calculate the log10 normalized matrix
-# We obtain the top 1000 variant genes
-hvg.top &lt;- getTopHVGs(sc.experiment.1, n=1000)
-# We obtain the PCA for downstream analysis:
-sc.experiment.1 &lt;- runPCA(sc.experiment.1) 
-# Clustering
-library(bluster)
-kgraph.clusters &lt;- clusterRows(reducedDim(sc.experiment.1, &quot;PCA&quot;),
-                               TwoStepParam(
-                                 first=KmeansParam(centers=100),
-                                 second=NNGraphParam(k=4)
-                               )
-)
-table(kgraph.clusters)
-# We set the cluster information for each cell:
-colLabels(sc.experiment.1) &lt;- factor(kgraph.clusters)
-##
+<p><code>ClusterFoldSimilarity</code> will automatically look inside these objects for normalized data (<code>GetAssayData(assay, slot = &quot;data&quot;)</code> and <strong>cluster or label information</strong> <code>Idents()</code> for <em><a href="https://bioconductor.org/packages/3.16/Seurat">Seurat</a></em> and <code>colLabels()</code> for <em><a href="https://bioconductor.org/packages/3.16/SingleCellExperiment">SingleCellExperiment</a></em> ).</p>
+<p>For the purpose of this example, we will use the package scRNAseq that contains several single-cell datasets, including samples from mouse brain.</p>
+<pre class="r"><code>library(Seurat)
+library(scRNAseq)
 
-my.sc.experiment.list = list()
-my.sc.experiment.list[[1]] &lt;- sc.experiment.1
-my.sc.experiment.list[[2]] &lt;- sc.experiment.2</code></pre>
-<p>Once we have all of our single-cell datasets analyzed, we can compute the similarity values. <code>cluster_fold_similarity()</code> takes as arguments:</p>
+# Mouse brain single-cell RNA-seq 1 from Romanov et. al.
+mouse.brain.romanov &lt;- scRNAseq::RomanovBrainData(ensembl = T,location = F)
+colnames(mouse.brain.romanov) &lt;- colData(mouse.brain.romanov)$cellID
+rownames(colData(mouse.brain.romanov)) &lt;- colData(mouse.brain.romanov)$cellID
+singlecell.1.seurat &lt;- CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
+
+# Mouse brain single-cell RNA-seq 2 from Zeisel et. al.
+mouse.brain.zei &lt;- scRNAseq::ZeiselBrainData(ensembl = T,location = F)
+singlecell.2.seurat &lt;- CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))</code></pre>
+<p>Normalize and identify variable features for each dataset independently
+<em>Note: these steps should be done tailored to each independent dataset, here we apply the same parameters for the sake of simplicity:</em></p>
+<pre class="r"><code># Create a list with the unprocessed single-cell datasets
+singlecell.object.list &lt;- list(singlecell.1.seurat,singlecell.2.seurat)
+# Apply the same processing to each dataset and return a list of single-cell analysis
+singlecell.object.list &lt;- lapply(X = singlecell.object.list, FUN = function(x){
+  x &lt;- NormalizeData(x)
+  x &lt;- FindVariableFeatures(x, selection.method = &quot;vst&quot;, nfeatures = 1000)
+  x &lt;- ScaleData(x,features = VariableFeatures(x))
+  x &lt;- RunPCA(x, features = VariableFeatures(object = x))
+  x &lt;- FindNeighbors(x, dims = 1:10)
+  x &lt;- FindClusters(x, resolution = 0.1)
+})</code></pre>
+<p>Once we have all of our single-cell datasets analyzed independently, we can compute the similarity values. <code>cluster_fold_similarity()</code> takes as arguments:</p>
 <ul>
 <li><code>sce_list</code>: a list of single-cell objects (mandatory) either of class Seurat or of class SingleCellExperiment.</li>
 <li><code>top_n</code>: the top n most similar clusters to report from each pair of clusters (default: <code>1</code>, the top most similar cluster). If set to <code>Inf</code> it will return all the values from all the cluster-pairs.</li>
 <li><code>top_n_genes</code>: the top n genes that contributes to the similarity between the pair of clusters (default: <code>1</code>, the top contributing gene).</li>
 </ul>
 <pre class="r"><code>library(ClusterFoldSimilarity)
-similarity.table &lt;- cluster_fold_similarity(sce_list = my.sc.experiment.list,top_n = 1)
+similarity.table &lt;- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = 1)
 head(similarity.table)</code></pre>
-<p>By default, <code>cluster_fold_similarity()</code> will plot a graph network that visualizes the connections between the clusters from the different datasets; it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar.</p>
+<p>By default, <code>cluster_fold_similarity()</code> will plot a graph network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained, the arrows point in the direction of the similarity (dataset_l:cluster_l -&gt; dataset_r:cluster_r); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar.</p>
+<p>In this example, as we have information regarding cell-type labels, we can check how the cell types match by calculating the most abundant cell type on each of the similar clusters:</p>
+<pre class="r"><code>label1 = &quot;level1.class&quot; # name of label of data 1
+label2 = &quot;level1class&quot; # name of label of data 2
+
+apply(similarity.table[similarity.table$dataset_l == 1,],1,function(x){
+  n1 = names(which.max(table(singlecell.object.list[[as.numeric(x[&quot;dataset_l&quot;])]]@meta.data[singlecell.object.list[[as.numeric(x[&quot;dataset_l&quot;])]]@meta.data$seurat_clusters == x[&quot;cluster_l&quot;],label1])))
+  n2 = names(which.max(table(singlecell.object.list[[as.numeric(x[&quot;dataset_r&quot;])]]@meta.data[singlecell.object.list[[as.numeric(x[&quot;dataset_r&quot;])]]@meta.data$seurat_clusters == x[&quot;cluster_r&quot;],label2])))
+  return(paste(&quot;dataset 1 cluster&quot;,x[&quot;cluster_l&quot;],&quot;top cell.type:&quot;,n1,&quot;VS dataset 2 cluster&quot;,x[&quot;cluster_r&quot;],&quot;top cell.type:&quot;,n2))
+  })</code></pre>
+<p>If we suspect that clusters could be related with more than one cluster of other datasets, we can retrieve the top n similarities for each cluster:</p>
+<pre class="r"><code># Retrieve the top 3 similar cluster for each of the clusters:
+similarity.table.3top &lt;- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = 3)
+head(similarity.table.3top)</code></pre>
+<p>If we are interested on the features that contribute the most to the similarity, we can retrieve the top n features:</p>
+<pre class="r"><code># Retrieve the top 5 features that contribute the most to the similarity between each pair of clusters:
+similarity.table.5top.features &lt;- cluster_fold_similarity(sce_list = singlecell.object.list,top_n_genes = 5)
+head(similarity.table.5top.features, n=10)</code></pre>
 </div>
 <div id="retrieving-all-the-similarity-values" class="section level1" number="3">
 <h1><span class="header-section-number">3</span> Retrieving all the similarity values</h1>
-<p>Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one cluster that is similar to a cluster of interest, finding the most dissimilar clusters, etc).</p>
-<pre class="r"><code>library(ClusterFoldSimilarity)
-similarity.table &lt;- cluster_fold_similarity(sce_list = my.sc.experiment.list,top_n = Inf)
-dim(similarity.table)</code></pre>
+<p>Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one cluster that is similar to a cluster of interest, finding the most dissimilar clusters, etc). To obtain all the values, we need to specify <code>top_n=Inf</code>:</p>
+<pre class="r"><code>similarity.table.all.values &lt;- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = Inf)
+dim(similarity.table.all.values)</code></pre>
 <p>It can be convenient to create a matrix with all the similarity values from the comparison of two datasets:</p>
 <pre class="r"><code>dataset1= 1
 dataset2= 2
-similarity.table.2 &lt;- similarity.table %&gt;% filter(dataset_l == dataset1 &amp; dataset_r == dataset2) %&gt;% arrange(desc(as.numeric(cluster_l)),as.numeric(cluster_r))
+similarity.table.2 &lt;- similarity.table.all.values %&gt;% 
+                      filter(dataset_l == dataset1 &amp; dataset_r == dataset2) %&gt;% 
+                      arrange(desc(as.numeric(cluster_l)),as.numeric(cluster_r))
 cls &lt;- unique(similarity.table.2$cluster_l)
 cls2 &lt;- unique(similarity.table.2$cluster_r)
-similarity.table.all &lt;- t(matrix(similarity.table.2$similarity_value,ncol=length(unique(similarity.table.2$cluster_l))))
-rownames(similarity.table.all) &lt;- cls
-colnames(similarity.table.all) &lt;- cls2
-similarity.table.all</code></pre>
+similarity.matrix.all &lt;- t(matrix(similarity.table.2$similarity_value,ncol=length(unique(similarity.table.2$cluster_l))))
+rownames(similarity.matrix.all) &lt;- cls
+colnames(similarity.matrix.all) &lt;- cls2
+similarity.matrix.all</code></pre>
 </div>
 <div id="similarity-score-calculation" class="section level1" number="4">
 <h1><span class="header-section-number">4</span> Similarity score calculation</h1>
