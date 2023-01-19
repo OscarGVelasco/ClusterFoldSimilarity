@@ -1,29 +1,6 @@
 # ClusterFoldSimilarity
 Calculate cluster similarity between clusters from different single cell datasets/batches/samples.
 
-Full information about the method can be read on the original paper:
-
-*A single-cell clusters similarity measure for different batches, datasets, and samples
-Óscar González-Velasco, Elena Sanchez-Luis, Enrique De La Rosa, José M. Sanchez-Santos, Javier De Las Rivas
-bioRxiv 2022.03.14.483731; doi: https://doi.org/10.1101/2022.03.14.483731*
-
-This package is compatible with the most used single-cell objects: **Seurat** and **SingleCellExperiment**. 
-
-![](README_files/ClusterFoldSimilarity_pipeline.png)
-
-*Figure: Pipeline representation of the similarity measurement done by ClusterFoldSimilarity. A:
-Foldchanges (FC) are calculated between all possible combination of clusters for each dataset, figure
-shows the FC calculation for cluster 1 in both datasets 1 and 2 in a UMAP corresponding with
-pancreas cells. B: The scalar product of the computed FCs between all pairs is calculated. C:
-Representation of the vectorial space of FCs and their product (in the graphic, a and b represent FCs
-of a same gene between clusters), FC that points in the same direction will have positive product sign,
-meanwhile opposite FC will have negative product sign. D: Table with the similarity values and output
-information given by ClusterFoldSimilarity. E: UMAP representation of two pancreatic datasets with
-annotated cell-types. Note that exact cell-type clusters are matched together by the table given at D. F:
-Graph plot made by ClusterFoldSimilarity using the similarity values calculated (given at table D),
-nodes correspond with clusters from a specific dataset, edges correspond with the similarity value,
-arrows point in the direction of the similarity relationship.*
-
 Installation
 -----------------------------
 
@@ -41,7 +18,7 @@ Introduction
 
 Comparing single-cell data across different datasets, samples and batches has demonstrated to be challenging. `ClusterFoldSimilarity` aims to solve the complexity of comparing different single-cell data by calculating similarity scores between clusters (or user-defined groups) from two or more single-cell experiments. It does it by finding similar fold-change patterns across cell groups with a common set of features (e.g. genes). It also reports the top genes that contributed the most to the similarity value, acting as a feature selection tool.
 
-`ClusterFoldSimilarity` can be used with single-cell RNA-Seq data, single-cell ATAC-Seq data, or more broadly, with continuous numerical data that shows signal changes across a set of common features from different groups. It is compatible with the most used single-cell objects: `r Biocpkg("Seurat")` and `r Biocpkg("SingleCellExperiment")`.
+`ClusterFoldSimilarity` can be used with single-cell RNA-Seq data, single-cell ATAC-Seq data, or more broadly, with continuous numerical data that shows signal changes across a set of common features from different groups. It is compatible with the most used R single-cell objects: `Seurat` and `SingleCellExperiment`.
 
 The output is a table that contains the similarity values for each pair of clusters from all datasets. `ClusterFoldSimilarity` also includes various plotting functions to help visualize the similarity scores.
 
@@ -50,7 +27,7 @@ Using ClusterFoldSimilarity to find similar clusters across datasets
 
 Typically `ClusterFoldSimilarity` will receive as input either a list of two or more `r Biocpkg("Seurat")` objects or a list of two or more `r Biocpkg("SingleCellExperiment")` objects, containing already processed data: e.g. filtered, normalized and clustered. (*PLEASE NOTE: this package is intended to be used with high-end-analyzed data, the better the pre-analysis the better the results `ClusterFoldSimilarity` will obtain, this includes: normalizing and taking care of local technical noise effects, removing non-variant data or selecting the top variant features, removing 0 expression features, reasonable number of clusters, etc.*)
 
-`ClusterFoldSimilarity` will automatically look inside these objects for normalized data (`GetAssayData(assay, slot = "data")` and **cluster or label information** `Idents()` for `r Biocpkg("Seurat")` and `colLabels()` for `r Biocpkg("SingleCellExperiment")` ).
+`ClusterFoldSimilarity` will automatically look inside these objects for **normalized data** ( `GetAssayData(assay, slot = "data")` for `Seurat` or `normcounts()` for `SingleCellExperiment` ) and **cluster or label information** ( `Idents()` for `Seurat` and `colLabels()` for `SingleCellExperiment` ).
 
 For the purpose of this example, we will use the package scRNAseq that contains several single-cell datasets, including samples from mouse brain.
 
@@ -155,17 +132,36 @@ colnames(similarity.matrix.all) <- cls2
 similarity.matrix.all
 ```
 
+Using ClusterFoldSimilarity for cell annotation:
+-----------------------------
+
+If we want to use a specific single-cell dataset for annotation (from which we know a ground-truth label, e.g. cell type, cell cycle, treatment... etc.), we can use that label to directly compare the single-cell datasets.
+
+For this example we will use the dataset from Romanov et. al. that contains cell-type annotations from mouse brain samples:
+
+```{r}
+# The name of the label we want to use for annotation:
+cell.label.name <- "level1.class"
+# Visualize the label we are using as ground-truth:
+table(singlecell.object.list[[1]]@meta.data[,cell.label.name])
+# Set the group label in the Seurat object:
+Idents(singlecell.object.list[[1]]) <- cell.label.name
+
+similarity.table.cell.labeling <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = 1)
+```
+
+We can visualize all the similarities for each cluster to the annotated cell-groups:
+
+```{r}
+similarity.table.cell.labeling.all <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = Inf)
+
+ClusterFoldSimilarity::similarity_heatmap(similarity_table = similarity.table.cell.labeling.all,main_dataset = 2)
+```
+
 Similarity score calculation
 -----------------------------
 
 `ClusterFoldSimilarity` does not need to merge or harmonize the data across the datasets that we aim to analyze, which makes it less prone to data-loss or noise, and that is typical of some of these methods.
-
-
-Using ClusterFoldSimilarity for cell labeling
------------------------------
-
-to be continued...
-
 
 Similarity score calculation
 -----------------------------
