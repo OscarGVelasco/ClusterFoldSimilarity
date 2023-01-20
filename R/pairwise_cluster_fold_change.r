@@ -9,7 +9,8 @@
 #' 
 #' @return A list of dataframes containing the pairwise fold changes between all combinations of cluster.
 #' 
-#' @export
+#' @author Oscar Gonzalez-Velasco
+#' @keywords internal
 pairwise_cluster_fold_change <- function(x, clusters){
   divis_funct <- function(x,y) "/"(x,y) 
   clusters <- as.factor(clusters)

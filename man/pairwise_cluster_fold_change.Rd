@@ -20,3 +20,7 @@ A list of dataframes containing the pairwise fold changes between all combinatio
 \details{
 This function will perform fold change ratios of mean gene expression between all possible combination of clusters specified on colLabels inside the sc object.
 }
+\author{
+Oscar Gonzalez-Velasco
+}
+\keyword{internal}

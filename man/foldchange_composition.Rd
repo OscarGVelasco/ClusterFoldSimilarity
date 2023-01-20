@@ -22,3 +22,4 @@ This function will perform the dot product of each possible combination of foldc
 one with the source cluster's foldchanges and the other with the foldchange values of a target sample's cluster.
 The computation of all the possible combinations is the hadamard product of the matrix.
 }
+\keyword{internal}

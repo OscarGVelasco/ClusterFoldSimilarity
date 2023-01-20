@@ -11,6 +11,14 @@
 #' 
 #' @return The function returns a heatmap ggplot object. 
 #' 
+#' @examples 
+#' # singlecell.object.list consist of 2 or more single-cell objects
+#' # Using top_n = Inf by default plots a heatmap using the similarity values: 
+#' similarity.table.all <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = Inf)
+#' # Ploting the dataset 2 on the Y-axis:
+#' similarity_heatmap(similarity_table = similarity.table.cell.labeling.all,main_dataset = 2)
+#' 
+#' @author Oscar Gonzalez-Velasco
 #' @export
 similarity_heatmap <- function(similarity_table = NULL,
                                main_dataset=NULL,
@@ -36,15 +44,13 @@ g <- ggplot2::ggplot(sub.mt, ggplot2::aes(y=cluster_l, x=cluster_r, fill= simila
                                 high =   "#8a0d00", # Dark red - High
                                 guide="colorbar") + 
   {if(length(found_dataset)>1)ggplot2::facet_grid(~ dataset_r, scales = "free_x", space = "free_x",labeller = ggplot2::as_labeller(labels_personaliz))}+
+  {if(length(found_dataset)==1)ggplot2::xlab(paste(labels_personaliz,"cluster_r"))}+
   ggplot2::theme_minimal() +
   ggplot2::ylab(ylabel) +
   ggplot2::theme(
     strip.text = ggplot2::element_text(face = "bold", size = ggplot2::rel(0.8)),
     strip.background = ggplot2::element_rect(fill = "white", colour = "black", size = 0.6),
     axis.title.x=ggplot2::element_text()
-    #axis.text.x=element_blank(),
-    #axis.ticks.x=element_blank(),
-    #axis.title.y=element_blank()
   )
 return(g)
 }

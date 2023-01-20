@@ -27,7 +27,28 @@
 #'    \tab \cr
 #'    \code{top_gene_conserved} \tab The gene that showed most similar between cluster_l & cluster_r. \cr
 #' }
+#'
+#' @examples 
+#' library(Seurat)
+#' library(SeuratData)
+#' library(ClusterFoldSimilarity)
+#' # load dataset
+#' LoadData("ifnb")
+#' # split the dataset into a list of two seurat objects (stim and CTRL)
+#' singlecell.object.list <- SplitObject(ifnb, split.by = "stim")
+#' # normalize, identify variable features and cluster for each dataset independently
+#' singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
+#' x <- NormalizeData(x)
+#' x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 1000)
+#' x <- ScaleData(x,features = VariableFeatures(x))
+#' x <- RunPCA(x, features = VariableFeatures(object = x))
+#' x <- FindNeighbors(x, dims = 1:10)
+#' x <- FindClusters(x, resolution = 0.1)
+#' })
 #' 
+#' similarity.table <- cluster_fold_similarity(sce_list = singlecell.object.list)
+#' 
+#' @author Oscar Gonzalez-Velasco
 #' @export
 cluster_fold_similarity <- function(sce_list = NULL,
                                   sample_names = NULL,
@@ -106,6 +127,14 @@ cluster_fold_similarity <- function(sce_list = NULL,
   # Save the cluster name identification given by the user
   if(is_sce){cluster_names <- lapply(sce_list,function(x)levels(SingleCellExperiment::colLabels(x)))}
   if(is_seurat){cluster_names <- lapply(sce_list,function(x)levels(Seurat::Idents(x)))}
+  # Check for dataset names:
+  if(is.null(sample_names)){
+    sample_names <- seq(length(sce_list))
+  }else{
+    if(!(length(sample_names) == length(sce_list))){
+      stop("Number of names given in sample_names does not match the length of the single-cell experiment list.")
+    }
+  }
   # Calculate cluster FoldChange pairwise values:
   markers_sce_list <- list()
   # markers_sce_list <- lapply(sce_list,function(x){findMarkers(x,pval.type="all")})
@@ -143,7 +172,7 @@ cluster_fold_similarity <- function(sce_list = NULL,
             # The sample for comparing will be the sample_i+1
             comparative <- sce_comparative[[n]]
             # Comparative = single cluster from sample_i+1
-            textwide <- paste0("\r Comparing [cluster ",cluster_names[[i]][j],"] from dataset: ",i," with [cluster: ",cluster_names[[k]][n] ,"] from dataset: ",k,spaces)
+            textwide <- paste0("\r Comparing [cluster ",cluster_names[[i]][j],"] from dataset: ",sample_names[i]," with [cluster: ",cluster_names[[k]][n] ,"] from dataset: ",sample_names[k],spaces)
             message(textwide, appendLF=FALSE)
             # Create a matrix A and B to compute the dotproduct of all possible combinations of cluster comparison FoldChanges for each gene
             mat <- foldchange_composition(root[features,],comparative[features,])
@@ -174,9 +203,11 @@ cluster_fold_similarity <- function(sce_list = NULL,
               results[nrow(results)+1,] <- list(
                 similarity_weighted, # Similarity_value
                 sem, # Standar Error of the Mean
-                i, # dataset_l
+                # i, # dataset_l
+                sample_names[i], # dataset_l
                 cluster_names[[i]][j], # Cluster_l (left; source of comparison) -> j corresponding to the loop
-                k, # dataset_r
+                # k, # dataset_r
+                sample_names[k], # dataset_r
                 cluster_names[[k]][n], # Cluster_r (right; target of comparison) -> n corresponding to the internal loop
                 g) # Top gene conserved
             }

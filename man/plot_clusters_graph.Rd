@@ -21,3 +21,14 @@ of that similarity between clusters.
 This function will calculate a similarity coeficient using the fold changes of shared genes among clusters of different samples/batches. The similarity coeficient
 is calculated using the dotproduct of every pairwise combination of Fold Changes between a source cluster i of sample n and all the target clusters in sample j.
 }
+\examples{
+# singlecell.object.list consist of 2 or more single-cell objects
+# By default plots a graph using the similarity values: 
+similarity.table.top <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = 1)
+# The same plot can be created using:
+plot_clusters_graph(similarity.table = similarity.table.top)
+
+}
+\author{
+Oscar Gonzalez-Velasco
+}

@@ -11,7 +11,7 @@
 #' 
 #' @return A dataframe containing the hadamard product of all the possible combinations of foldchanges.
 #' 
-#' @export
+#' @keywords internal
 foldchange_composition <- function(root = NULL, comparative = NULL){
   # Avoiding 1 column matrix to vector conversion when subseting index
   root <- as.matrix(root)

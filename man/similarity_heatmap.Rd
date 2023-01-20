@@ -27,3 +27,14 @@ The function returns a heatmap ggplot object.
 This function plots a heatmap using ggplot. It is intended to be used with the output table from \link[ClusterFoldSimilarity]{cluster_fold_similarity}, which includes the columns: dataset_l (the dataset used for comparison)
 dataset_r (the dataset against dataset_l has been contrasted), cluster_l (clusters from dataset_l), cluster_r (clusters from dataset_r) and the similarity_value.
 }
+\examples{
+# singlecell.object.list consist of 2 or more single-cell objects
+# Using top_n = Inf by default plots a heatmap using the similarity values: 
+similarity.table.all <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = Inf)
+# Ploting the dataset 2 on the Y-axis:
+similarity_heatmap(similarity_table = similarity.table.cell.labeling.all,main_dataset = 2)
+
+}
+\author{
+Oscar Gonzalez-Velasco
+}

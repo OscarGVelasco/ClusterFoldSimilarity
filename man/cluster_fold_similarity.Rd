@@ -46,3 +46,27 @@ The function returns a \linkS4class{DataFrame} containing the best top similarit
 This function will calculate a similarity coeficient using the fold changes of shared genes among clusters of different samples/batches. The similarity coeficient
 is calculated using the dotproduct of every pairwise combination of Fold Changes between a source cluster i of sample n and all the target clusters in sample j.
 }
+\examples{
+library(Seurat)
+library(SeuratData)
+library(ClusterFoldSimilarity)
+# load dataset
+LoadData("ifnb")
+# split the dataset into a list of two seurat objects (stim and CTRL)
+singlecell.object.list <- SplitObject(ifnb, split.by = "stim")
+# normalize, identify variable features and cluster for each dataset independently
+singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
+x <- NormalizeData(x)
+x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 1000)
+x <- ScaleData(x,features = VariableFeatures(x))
+x <- RunPCA(x, features = VariableFeatures(object = x))
+x <- FindNeighbors(x, dims = 1:10)
+x <- FindClusters(x, resolution = 0.1)
+})
+
+similarity.table <- cluster_fold_similarity(sce_list = singlecell.object.list)
+
+}
+\author{
+Oscar Gonzalez-Velasco
+}
