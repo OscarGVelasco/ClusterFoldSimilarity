@@ -14,7 +14,8 @@ Suggests:
     knitr,
     rmarkdown,
     Seurat,
-    SingleCellExperiment
+    SingleCellExperiment,
+    scRNAseq
 RoxygenNote: 7.2.3
 biocViews: SingleCell, Clustering, FeatureExtraction, GraphAndNetwork, GeneTarget
 VignetteBuilder: knitr

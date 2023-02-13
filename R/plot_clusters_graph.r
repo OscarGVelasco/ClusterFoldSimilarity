@@ -43,5 +43,5 @@ plot_clusters_graph <- function(similarity.table = NULL){
        vertex.size = 14, vertex.frame.color = NA, vertex.label.color = "black", 
        vertex.label.cex = 0.6, vertex.label.dist = 0, edge.curved = 0.2);
   legend('topleft', legend = paste0('Dataset ', unique(df$dataset_l)),
-         fill = cl_codes, xpd=TRUE, inset=c(-0.2,-0.2),cex=0.8)
+         fill = cl_codes, xpd=TRUE, inset=c(-0.1,-0.1),cex=0.8)
 }

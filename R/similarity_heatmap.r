@@ -42,7 +42,8 @@ g <- ggplot2::ggplot(sub.mt, ggplot2::aes(y=cluster_l, x=cluster_r, fill= simila
   ggplot2::scale_fill_gradient2(low = "#7855ba", # Dark Violet - Low
                                 mid = "#ffffff", # White - Medium
                                 high =   "#8a0d00", # Dark red - High
-                                guide="colorbar") + 
+                                guide="colorbar",
+                                name="Similarity value") + 
   {if(length(found_dataset)>1)ggplot2::facet_grid(~ dataset_r, scales = "free_x", space = "free_x",labeller = ggplot2::as_labeller(labels_personaliz))}+
   {if(length(found_dataset)==1)ggplot2::xlab(paste(labels_personaliz,"cluster_r"))}+
   ggplot2::theme_minimal() +
@@ -50,7 +51,9 @@ g <- ggplot2::ggplot(sub.mt, ggplot2::aes(y=cluster_l, x=cluster_r, fill= simila
   ggplot2::theme(
     strip.text = ggplot2::element_text(face = "bold", size = ggplot2::rel(0.8)),
     strip.background = ggplot2::element_rect(fill = "white", colour = "black", size = 0.6),
-    axis.title.x=ggplot2::element_text()
+    axis.title.x=ggplot2::element_text(),
+    axis.text.x=ggplot2::element_text(angle=45, vjust=1, hjust=1)
   )
+
 return(g)
 }

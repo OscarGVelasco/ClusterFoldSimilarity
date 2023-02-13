@@ -48,23 +48,32 @@ is calculated using the dotproduct of every pairwise combination of Fold Changes
 }
 \examples{
 library(Seurat)
-library(SeuratData)
+library(scRNAseq)
 library(ClusterFoldSimilarity)
-# load dataset
-LoadData("ifnb")
-# split the dataset into a list of two seurat objects (stim and CTRL)
-singlecell.object.list <- SplitObject(ifnb, split.by = "stim")
-# normalize, identify variable features and cluster for each dataset independently
-singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
-x <- NormalizeData(x)
-x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 1000)
-x <- ScaleData(x,features = VariableFeatures(x))
-x <- RunPCA(x, features = VariableFeatures(object = x))
-x <- FindNeighbors(x, dims = 1:10)
-x <- FindClusters(x, resolution = 0.1)
-})
+# Mouse brain single-cell RNA-seq 1 from Romanov et. al.
+mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
+colnames(mouse.brain.romanov) <- colData(mouse.brain.romanov)$cellID
+rownames(colData(mouse.brain.romanov)) <- colData(mouse.brain.romanov)$cellID
+singlecell.1.seurat <- CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
 
-similarity.table <- cluster_fold_similarity(sce_list = singlecell.object.list)
+# Mouse brain single-cell RNA-seq 2 from Zeisel et. al.
+mouse.brain.zei <- scRNAseq::ZeiselBrainData(ensembl = TRUE)
+singlecell.2.seurat <- CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
+
+# Create a list with the unprocessed single-cell datasets
+singlecell.object.list <- list(singlecell.1.seurat,singlecell.2.seurat)
+# Apply the same processing to each dataset and return a list of single-cell analysis
+singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
+  x <- NormalizeData(x)
+  x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 1000)
+  x <- ScaleData(x,features = VariableFeatures(x))
+  x <- RunPCA(x, features = VariableFeatures(object = x))
+  x <- FindNeighbors(x, dims = seq(10))
+  x <- FindClusters(x, resolution = 0.1)
+})
+# Calculate the similarity between the two datasets:
+similarity.table <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = 1)
+head(similarity.table)
 
 }
 \author{
