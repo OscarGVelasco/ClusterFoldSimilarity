@@ -11,12 +11,36 @@
 #' 
 #' @return The function returns a heatmap ggplot object. 
 #' 
-#' @examples 
+#' @examples
+#' library(Seurat)
+#' library(scRNAseq)
+#' library(ClusterFoldSimilarity)
+#' # Mouse brain single-cell RNA-seq 1 from Romanov et. al.
+#' mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
+#' colnames(mouse.brain.romanov) <- colData(mouse.brain.romanov)$cellID
+#' rownames(colData(mouse.brain.romanov)) <- colData(mouse.brain.romanov)$cellID
+#' singlecell.1.seurat <- CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
+#' 
+#' # Mouse brain single-cell RNA-seq 2 from Zeisel et. al.
+#' mouse.brain.zei <- scRNAseq::ZeiselBrainData(ensembl = TRUE)
+#' singlecell.2.seurat <- CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
+#' 
+#' # Create a list with the unprocessed single-cell datasets
+#' singlecell.object.list <- list(singlecell.1.seurat,singlecell.2.seurat)
+#' # Apply the same processing to each dataset and return a list of single-cell analysis
+#' singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
+#'   x <- NormalizeData(x)
+#'   x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 1000)
+#'   x <- ScaleData(x,features = VariableFeatures(x))
+#'   x <- RunPCA(x, features = VariableFeatures(object = x))
+#'   x <- FindNeighbors(x, dims = seq(10))
+#'   x <- FindClusters(x, resolution = 0.1)
+#' })
 #' # singlecell.object.list consist of 2 or more single-cell objects
 #' # Using top_n = Inf by default plots a heatmap using the similarity values: 
 #' similarity.table.all <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = Inf)
 #' # Ploting the dataset 2 on the Y-axis:
-#' similarity_heatmap(similarity_table = similarity.table.cell.labeling.all,main_dataset = 2)
+#' similarity_heatmap(similarity_table = similarity.table.all,main_dataset = 2)
 #' 
 #' @author Oscar Gonzalez-Velasco
 #' @export
