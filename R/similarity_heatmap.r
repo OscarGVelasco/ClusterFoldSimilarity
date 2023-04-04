@@ -5,7 +5,7 @@
 #' This function plots a heatmap using ggplot. It is intended to be used with the output table from \link[ClusterFoldSimilarity]{cluster_fold_similarity}, which includes the columns: dataset_l (the dataset used for comparison)
 #' dataset_r (the dataset against dataset_l has been contrasted), cluster_l (clusters from dataset_l), cluster_r (clusters from dataset_r) and the similarity_value.
 #'
-#' @param similarity_table \linkS4class{DataFrame} containing the similarities between all possible pairs of single cell samples obtained with \link[ClusterFoldSimilarity]{cluster_fold_similarity} using the option n_top=Inf.
+#' @param similarity_table A DataFrame containing the similarities between all possible pairs of single cell samples obtained with \link[ClusterFoldSimilarity]{cluster_fold_similarity} using the option n_top=Inf.
 #' @param main_dataset Numeric. Specify the main dataset (y axis). It corresponds with the dataset_l column from the similarity_table.
 #' @param other_datasets Numeric. Specify some specific dataset to be ploted along the main_dataset (x axis, default: all other datasets found on dataset_r column from similarity_table).
 #' 

@@ -11,7 +11,7 @@ similarity_heatmap(
 )
 }
 \arguments{
-\item{similarity_table}{\linkS4class{DataFrame} containing the similarities between all possible pairs of single cell samples obtained with \link[ClusterFoldSimilarity]{cluster_fold_similarity} using the option n_top=Inf.}
+\item{similarity_table}{A DataFrame containing the similarities between all possible pairs of single cell samples obtained with \link[ClusterFoldSimilarity]{cluster_fold_similarity} using the option n_top=Inf.}
 
 \item{main_dataset}{Numeric. Specify the main dataset (y axis). It corresponds with the dataset_l column from the similarity_table.}
 

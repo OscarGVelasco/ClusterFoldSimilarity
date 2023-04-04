@@ -57,15 +57,18 @@ plot_clusters_graph <- function(similarity.table = NULL){
   # igraph
   relations <- data.frame(from = from, to = to, sim = df$similarity_value)
   g <- igraph::graph_from_data_frame(relations, directed = TRUE)
-  cl <- as.numeric(apply(table(df$dataset_l, df$cluster_l) != 0, 1, sum))
+  # Retrieve the name and order of the datasets
+  set_names <- unique(df$dataset_l)
+  cl <- as.numeric(apply(table(df$dataset_l, df$cluster_l)[set_names,] != 0, 1, sum))
+  # Personalized colors  
   cluster_colors <- c("#FDD49E", "#D5BADB","#7EB6D9","#DBECDA","#F28D35","#4AA147","#86608E","#3C7DA6","#DE77AE","#D9E8F5","#92C791",
               "#D94D1A","#F2D377")
-  cl_codes <- cluster_colors[seq(length(unique(df$dataset_l)))]
+  cl_codes <- cluster_colors[seq(length(set_names))]
   par(mar=c(1,5,5,1));
   base::plot(g, vertex.label = igraph::V(g)$name, edge.arrow.size = .3, 
-       vertex.color = rep(cl_codes, cl),edge.color = "black",
-       vertex.size = 14, vertex.frame.color = NA, vertex.label.color = "black", 
-       vertex.label.cex = 0.6, vertex.label.dist = 0, edge.curved = 0.2);
+             vertex.color = scales::alpha(rep(cl_codes, cl),alpha = 0.8), edge.color = "black",
+             vertex.size = 14, vertex.frame.color = NA, vertex.label.color = "black", 
+             vertex.label.cex = 0.6, vertex.label.dist = 0, edge.curved = 0.2);
   legend('topleft', legend = paste0('Dataset ', unique(df$dataset_l)),
          fill = cl_codes, xpd=TRUE, inset=c(-0.1,-0.1),cex=0.8)
 }

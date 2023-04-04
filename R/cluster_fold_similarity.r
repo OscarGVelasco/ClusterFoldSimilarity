@@ -11,7 +11,7 @@
 #' @param top_n Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1). If set to Inf, then all similarity values from all possible pairs of clusters are returned.
 #' @param top_n_genes Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison (default 1). If top_n = Inf then top_n_genes is automatically set to 1.
 #' 
-#' @return The function returns a \linkS4class{DataFrame} containing the best top similarities between all possible pairs of single cell samples. Column values are:
+#' @return The function returns a DataFrame containing the best top similarities between all possible pairs of single cell samples. Column values are:
 #' \tabular{ll}{
 #'    \code{similarity_value} \tab The top similarity value calculated between dataset_l:cluster_l and dataset_r. \cr
 #'    \tab \cr
@@ -147,6 +147,7 @@ cluster_fold_similarity <- function(sce_list = NULL,
   # Calculate cluster FoldChange pairwise values:
   markers_sce_list <- list()
   # markers_sce_list <- lapply(sce_list,function(x){findMarkers(x,pval.type="all")})
+  message(paste("Using a common set of",length(features),"features."))
   message("Computing fold changes.")
   if(is_sce){
     markers_sce_list <- lapply(sce_list,function(x){

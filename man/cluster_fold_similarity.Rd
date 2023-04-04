@@ -22,7 +22,7 @@ containing the selected features (e.g. 2000 most variable genes).}
 \item{top_n_genes}{Numeric. Number of top genes that explains the clusters similarity to report for each cluster comparison (default 1). If top_n = Inf then top_n_genes is automatically set to 1.}
 }
 \value{
-The function returns a \linkS4class{DataFrame} containing the best top similarities between all possible pairs of single cell samples. Column values are:
+The function returns a DataFrame containing the best top similarities between all possible pairs of single cell samples. Column values are:
 \tabular{ll}{
    \code{similarity_value} \tab The top similarity value calculated between dataset_l:cluster_l and dataset_r. \cr
    \tab \cr
