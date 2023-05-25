@@ -2,6 +2,13 @@
 library(BiocStyle)
 knitr::opts_chunk$set(eval=TRUE,warning=FALSE, error=FALSE, message=FALSE)
 
+## ----eval=FALSE---------------------------------------------------------------
+#  library(devtools)
+#  install_github("OscarGVelasco/ClusterFoldSimilarity")
+
+## ----setup--------------------------------------------------------------------
+library(ClusterFoldSimilarity)
+
 ## ----construct----------------------------------------------------------------
 library(Seurat)
 library(scRNAseq)
@@ -31,31 +38,31 @@ singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
 
 ## -----------------------------------------------------------------------------
 library(ClusterFoldSimilarity)
-similarity.table <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = 1)
+similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1)
 head(similarity.table)
 
 ## -----------------------------------------------------------------------------
 label1 <- "level1.class" # name of label of data 1
 label2 <- "level1class" # name of label of data 2
 
-apply(similarity.table[similarity.table$dataset_l == 1,],1,function(x){
-  n1 <- names(which.max(table(singlecell.object.list[[as.numeric(x["dataset_l"])]]@meta.data[singlecell.object.list[[as.numeric(x["dataset_l"])]]@meta.data$seurat_clusters == x["cluster_l"],label1])))
-  n2 <- names(which.max(table(singlecell.object.list[[as.numeric(x["dataset_r"])]]@meta.data[singlecell.object.list[[as.numeric(x["dataset_r"])]]@meta.data$seurat_clusters == x["cluster_r"],label2])))
-  return(paste("dataset 1 cluster",x["cluster_l"],"top cell.type:",n1,"VS dataset 2 cluster",x["cluster_r"],"top cell.type:",n2))
+apply(similarity.table[similarity.table$datasetL == 1,],1,function(x){
+  n1 <- names(which.max(table(singlecell.object.list[[as.numeric(x["datasetL"])]]@meta.data[singlecell.object.list[[as.numeric(x["datasetL"])]]@meta.data$seurat_clusters == x["clusterL"],label1])))
+  n2 <- names(which.max(table(singlecell.object.list[[as.numeric(x["datasetR"])]]@meta.data[singlecell.object.list[[as.numeric(x["datasetR"])]]@meta.data$seurat_clusters == x["clusterR"],label2])))
+  return(paste("dataset 1 cluster",x["clusterL"],"top cell.type:",n1,"VS dataset 2 cluster",x["clusterR"],"top cell.type:",n2))
   })
 
 ## -----------------------------------------------------------------------------
 # Retrieve the top 3 similar cluster for each of the clusters:
-similarity.table.3top <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = 3)
+similarity.table.3top <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=3)
 head(similarity.table.3top)
 
 ## -----------------------------------------------------------------------------
 # Retrieve the top 5 features that contribute the most to the similarity between each pair of clusters:
-similarity.table.5top.features <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n_genes = 5)
+similarity.table.5top.features <- clusterFoldSimilarity(sceList=singlecell.object.list, topNFeatures=5)
 head(similarity.table.5top.features, n=10)
 
 ## -----------------------------------------------------------------------------
-similarity.table.all.values <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = Inf)
+similarity.table.all.values <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=Inf)
 dim(similarity.table.all.values)
 
 ## -----------------------------------------------------------------------------
@@ -63,11 +70,11 @@ library(dplyr)
 dataset1 <- 1
 dataset2 <- 2
 similarity.table.2 <- similarity.table.all.values %>% 
-                      filter(dataset_l == dataset1 & dataset_r == dataset2) %>% 
-                      arrange(desc(as.numeric(cluster_l)),as.numeric(cluster_r))
-cls <- unique(similarity.table.2$cluster_l)
-cls2 <- unique(similarity.table.2$cluster_r)
-similarity.matrix.all <- t(matrix(similarity.table.2$similarity_value,ncol=length(unique(similarity.table.2$cluster_l))))
+                      filter(datasetL == dataset1 & datasetR == dataset2) %>% 
+                      arrange(desc(as.numeric(clusterL)), as.numeric(clusterR))
+cls <- unique(similarity.table.2$clusterL)
+cls2 <- unique(similarity.table.2$clusterR)
+similarity.matrix.all <- t(matrix(similarity.table.2$similarityValue, ncol=length(unique(similarity.table.2$clusterL))))
 rownames(similarity.matrix.all) <- cls
 colnames(similarity.matrix.all) <- cls2
 similarity.matrix.all
@@ -76,19 +83,20 @@ similarity.matrix.all
 # The name of the label we want to use for annotation:
 cell.label.name <- "level1.class"
 # Visualize the label we are using as ground-truth:
-table(singlecell.object.list[[1]]@meta.data[,cell.label.name])
+table(singlecell.object.list[[1]]@meta.data[, cell.label.name])
 # Set the group label in the Seurat object:
 Idents(singlecell.object.list[[1]]) <- cell.label.name
 
-similarity.table.cell.labeling <- cluster_fold_similarity(sce_list = singlecell.object.list,
-                                                          sample_names = c("labeled cells","new samples"),
-                                                          top_n = 1)
+similarity.table.cell.labeling <- clusterFoldSimilarity(sceList=singlecell.object.list,
+                                                          sampleNames=c("labeled cells","new samples"),
+                                                          topN=1)
 
 ## -----------------------------------------------------------------------------
-similarity.table.cell.labeling.all <- cluster_fold_similarity(sce_list = singlecell.object.list,top_n = Inf,
-                                                              sample_names = c("labeled cells","new samples"))
+similarity.table.cell.labeling.all <- clusterFoldSimilarity(sceList=singlecell.object.list,
+                                                            topN=Inf,
+                                                            sampleNames=c("labeled cells", "new samples"))
 # We can select which dataset to plot in the Y-axis:
-ClusterFoldSimilarity::similarity_heatmap(similarity_table = similarity.table.cell.labeling.all,main_dataset = "new samples")
+ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.cell.labeling.all, mainDataset="new samples")
 
 ## -----------------------------------------------------------------------------
 # Example with 3 datasets: we split the single-cell RNA-seq from Zeisel et. al. by tissue:
@@ -102,16 +110,14 @@ singlecell.object.list.split <- lapply(X = singlecell.object.list.split, FUN = f
   x <- FindClusters(x, resolution = 0.1)
 })
 
-singlecell.object.list.3.datasets <- c(singlecell.object.list[[1]],singlecell.object.list.split)
-similarity.table.3.datasets <- cluster_fold_similarity(sce_list = singlecell.object.list.3.datasets,sample_names = c("romanov","zei.cortex","zei.hippo"))
+singlecell.object.list.3.datasets <- c(singlecell.object.list[[1]], singlecell.object.list.split)
+similarity.table.3.datasets <- clusterFoldSimilarity(sceList=singlecell.object.list.3.datasets, 
+                                                     sampleNames=c("romanov", "zei.cortex", "zei.hippo"))
 
 ## -----------------------------------------------------------------------------
-similarity.table.3.datasets <- cluster_fold_similarity(sce_list = singlecell.object.list.3.datasets,
-                                                       sample_names = c("romanov","zei.cortex","zei.hippo"),
-                                                       top_n = Inf)
-
-## ----setup--------------------------------------------------------------------
-library(ClusterFoldSimilarity)
+similarity.table.3.datasets <- clusterFoldSimilarity(sceList=singlecell.object.list.3.datasets,
+                                                     sampleNames = c("romanov","zei.cortex","zei.hippo"),
+                                                     topN = Inf)
 
 ## -----------------------------------------------------------------------------
 sessionInfo()
