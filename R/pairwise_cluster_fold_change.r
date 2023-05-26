@@ -57,7 +57,7 @@ pairwiseClusterFoldChange <- function(x, clusters, nSubsampling){
   })
   # Calculate the element-wise mean of the sub-samplings of fold changes
   finalLogFolds <- Reduce(`+`, listOfFolds) / length(listOfFolds)
-  #finalLogFolds <- apply(finalLogFolds, 2,function(z)(z - mean(z))) # Normalization by mean
+  finalLogFolds <- apply(finalLogFolds, 2,function(z)(z - mean(z))) # Normalization by mean
   colnames(finalLogFolds) <- paste("logFC", j[1,], j[2,], sep='.')
   n <- length(levels(clusters)) - 1
   nr <- ncol(finalLogFolds)
