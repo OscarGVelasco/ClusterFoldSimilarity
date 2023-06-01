@@ -146,17 +146,28 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   ## Calculate cluster FoldChange pairwise values:
   markersSceList <- list()
   message(paste("Using a common set of", length(features), "features."))
+  # Testing the number of draws/subsamplings of cells needed to see *all cells*
+  cellDraw <- function(n){
+    percentage = (1/3) * n
+    return(sum(rep(1, n+1) / seq(1, n+1)) * (n/percentage))
+  }
+  if(isSce){
+    nOfDraws <- unlist(sapply(1:length(sceList),function(i)sapply(c(table(SingleCellExperiment::colLabels(sceList[[i]]))),cellDraw)))
+  }
+  if(isSeurat){
+    nOfDraws <- unlist(sapply(1:length(sceList),function(i)sapply(c(table(Seurat::Idents(sceList[[i]]))),cellDraw)))
+  }
+  # We select as optimal the subsampling n percentile 85% across all cell groups
+  message(paste0("Using a cell subsampling of n=",nSubsampling," (recomended n=",round(quantile(nOfDraws, probs=0.85)),")"))
   message("Computing fold changes.")
   if(isSce){
     markersSceList <- lapply(sceList, function(x){
       pairwiseClusterFoldChange(x=as.matrix(SingleCellExperiment::counts(x)), clusters=SingleCellExperiment::colLabels(x), nSubsampling=nSubsampling) # Raw counts
-      # pairwiseClusterFoldChange(x=as.matrix(SingleCellExperiment::normcounts(x)), clusters=SingleCellExperiment::colLabels(x))
     })
   }
   if(isSeurat){
     markersSceList <- lapply(sceList, function(x){
       pairwiseClusterFoldChange(x=as.matrix(Seurat::GetAssayData(x, slot="counts")), clusters=Seurat::Idents(x), nSubsampling=nSubsampling) # Raw counts from Seurat object
-      # pairwiseClusterFoldChange(x=as.matrix(Seurat::GetAssayData(x, slot="data")), clusters=Seurat::Idents(x)) # Norm. counts
     })
   }
   ## Main loop - samples
