@@ -20,7 +20,7 @@ pairwiseClusterFoldChange <- function(x, clusters, nSubsampling){
   countData <- x
   minNumFeatures <- 3
   cellPortion <- 1/3
-  fcFunct <- function(x,y) "-"(log(x),log(y)) 
+  fcFunct <- function(x,y) "-"(log2(x),log2(y)) 
   clusters <- as.factor(clusters)
   cellGroups <- split(seq_len(ncol(countData)), clusters)
   j <- expand.grid(levels(clusters), levels(clusters))
