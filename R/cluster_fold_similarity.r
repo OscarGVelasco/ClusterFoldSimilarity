@@ -17,6 +17,8 @@
 #'    \tab \cr
 #'    \code{sem} \tab Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes. \cr
 #'    \tab \cr
+#'    \code{w} \tab Weight associated with the score value. \cr
+#'    \tab \cr
 #'    \code{datasetL} \tab Dataset left, the dataset/sample which has been used to be compared.  \cr
 #'    \tab \cr
 #'    \code{clusterL} \tab Cluster left, the cluster source from datasetL which has been compared. \cr
@@ -97,6 +99,7 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   ## Final var names
   summaryResults <- data.frame(similarityValue=integer(),
                                 sem=integer(),
+                                w=integer(),
                                 datasetL=integer(), 
                                 clusterL=integer(),
                                 datasetR=integer(),
@@ -182,6 +185,7 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
         sceComparative <- markersSceList[[k]]
         results <- data.frame(similarityValue=integer(),
                               sem=integer(),
+                              w=integer(),
                               datasetL=integer(), 
                               clusterL=integer(),
                               datasetR=integer(),
@@ -202,8 +206,10 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
             topGenes <- head(colnames(mat)[order(matColmean, decreasing=TRUE)],n=topNFeatures)
             nNegative <- 0
             nPositive <- 0
-            nNegative <- sum(matColmean<0, na.rm=TRUE)
-            nPositive <- sum(matColmean>0, na.rm=TRUE)
+            # nNegative <- sum(matColmean<0, na.rm=TRUE)
+            # nPositive <- sum(matColmean>0, na.rm=TRUE)
+            nNegative <- sum(matColmean< (-0.2), na.rm=TRUE)
+            nPositive <- sum(matColmean> (0.20), na.rm=TRUE)
             diffNegPos <- nNegative - nPositive
             if(diffNegPos == 0 ){
               ## if same n of neg. and pos. OR all are 0s we add +2 to avoid Inf and multiply by 1 (log2(2))
@@ -217,12 +223,13 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
             ## log2 allows us to set 0 when we have equal number of + and -, and when - number is large, the weight is also
             ## large, allowing us to penalize negative numbers as well
             weight <- round(log2(abs(diffNegPos)), digits=2) # minimum possible value of weight is = 1
-            similarity_weighted <- sqrt(abs(sum(matColmean)) * weight) * sign(sum(matColmean))
+            similarity_weighted <- sqrt(abs(sum(matColmean)) + weight) * sign(sum(matColmean))
             ## Save results
             for (g in topGenes){
               results[nrow(results) + 1,] <- list(
                 similarity_weighted, ## similarityValue
                 sem, ## Standar Error of the Mean
+                weight, ## Weight of the score
                 sampleNames[i], ## datasetL
                 clusterNames[[i]][j], ## clusterL (left; source of comparison) -> j corresponding to the loop
                 sampleNames[k], ## datasetR
