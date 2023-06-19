@@ -210,20 +210,11 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
             # nPositive <- sum(matColmean>0, na.rm=TRUE)
             nNegative <- sum(matColmean< (-0.2), na.rm=TRUE)
             nPositive <- sum(matColmean> (0.20), na.rm=TRUE)
-            diffNegPos <- nNegative - nPositive
-            if(diffNegPos == 0 ){
-              ## if same n of neg. and pos. OR all are 0s we add +2 to avoid Inf and multiply by 1 (log2(2))
-              diffNegPos <- 2
-            }else if(abs(diffNegPos) == 1 ){
-              ## Num of pos. or neg. is exactly +1 larger -> multiply by 1 (log2(2)) to avoid multiply by 0
-              diffNegPos <- 2
-            }
-            sem <- round(sd(matColmean) / sqrt(nNegative + nPositive), digits=4)
+            sem <- round(sd(matColmean) / sqrt(nNegative + nPositive), digits=2)
             ## Weight based on the number of concordant-discordant FCs:
-            ## log2 allows us to set 0 when we have equal number of + and -, and when - number is large, the weight is also
-            ## large, allowing us to penalize negative numbers as well
-            weight <- round(log2(abs(diffNegPos)), digits=2) # minimum possible value of weight is = 1
-            similarity_weighted <- sqrt(abs(sum(matColmean)) + weight) * sign(sum(matColmean))
+            ## loosely based on cross-entropy
+            weight <- round(log(max(abs(nPositive - nNegative), 1)), digits = 2) * sign(nPositive - nNegative) # max: Avoiding log 0
+            similarity_weighted <- (sqrt(abs(sum(matColmean))) + weight) * sign(sum(matColmean) + weight)
             ## Save results
             for (g in topGenes){
               results[nrow(results) + 1,] <- list(
