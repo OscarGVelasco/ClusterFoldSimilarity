@@ -31,17 +31,17 @@
 #' }
 #'
 #' @examples 
-#' if (requireNamespace("Seurat") & requireNamespace("SingleCellExperiment") & requireNamespace("scRNAseq")){
+#' if (requireNamespace("Seurat") & requireNamespace("SingleCellExperiment") & requireNamespace("scRNAseq") & requireNamespace("SeuratObject")){
 #' library(ClusterFoldSimilarity)
 #' # Mouse brain single-cell RNA-seq 1 from Romanov et. al.
 #' mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
 #' colnames(mouse.brain.romanov) <- colData(mouse.brain.romanov)$cellID
 #' rownames(colData(mouse.brain.romanov)) <- colData(mouse.brain.romanov)$cellID
-#' singlecell.1.seurat <- CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
+#' singlecell.1.seurat <- SeuratObject::CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
 #' 
 #' # Mouse brain single-cell RNA-seq 2 from Zeisel et. al.
 #' mouse.brain.zei <- scRNAseq::ZeiselBrainData(ensembl = TRUE)
-#' singlecell.2.seurat <- CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
+#' singlecell.2.seurat <- SeuratObject::CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
 #' 
 #' # Create a list with the unprocessed single-cell datasets
 #' singlecell.object.list <- list(singlecell.1.seurat,singlecell.2.seurat)
@@ -55,7 +55,7 @@
 #'   x <- FindClusters(x, resolution = 0.1)
 #' })
 #' # Calculate the similarity between the two datasets:
-#' similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1)
+#' similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1, nSubsampling=18)
 #' head(similarity.table)
 #' }
 #' @author Oscar Gonzalez-Velasco

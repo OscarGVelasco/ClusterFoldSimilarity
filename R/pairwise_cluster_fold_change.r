@@ -15,6 +15,8 @@
 #' @return A list of dataframes containing the pairwise fold changes between all combinations of cluster.
 #' 
 #' @author Oscar Gonzalez-Velasco
+#' @importFrom("methods", "is")
+#' @importFrom("stats", "median", "optim", "pnorm", "quantile", "var")
 #' @keywords internal
 pairwiseClusterFoldChange <- function(x, clusters, nSubsampling){
   countData <- x
