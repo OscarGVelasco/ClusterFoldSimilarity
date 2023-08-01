@@ -9,7 +9,7 @@ clusterFoldSimilarity(
   sampleNames = NULL,
   topN = 1,
   topNFeatures = 1,
-  nSubsampling = 10
+  nSubsampling = 15
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ clusterFoldSimilarity(
 
 \item{topNFeatures}{Numeric. Number of top features that explains the clusters similarity to report for each cluster comparison (default 1). If topN = Inf then topNFeatures is automatically set to 1.}
 
-\item{nSubsampling}{Numeric. Number of random sampling of cells to achieve fold change stability (default 10).}
+\item{nSubsampling}{Numeric. Number of random sampling of cells to achieve fold change stability (default 15).}
 }
 \value{
 The function returns a DataFrame containing the best top similarities between all possible pairs of single cell samples. Column values are:

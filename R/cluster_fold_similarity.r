@@ -9,7 +9,7 @@
 #' @param sampleNames Character Vector. Specify the sample names, if not a number corresponding with its position on (sceList).
 #' @param topN Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1). If set to Inf, then all similarity values from all possible pairs of clusters are returned.
 #' @param topNFeatures Numeric. Number of top features that explains the clusters similarity to report for each cluster comparison (default 1). If topN = Inf then topNFeatures is automatically set to 1.
-#' @param nSubsampling Numeric. Number of random sampling of cells to achieve fold change stability (default 10).
+#' @param nSubsampling Numeric. Number of random sampling of cells to achieve fold change stability (default 15).
 #' 
 #' @return The function returns a DataFrame containing the best top similarities between all possible pairs of single cell samples. Column values are:
 #' \tabular{ll}{
