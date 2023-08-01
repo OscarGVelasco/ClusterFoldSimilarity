@@ -1,6 +1,6 @@
 # ClusterFoldSimilarity
 
-Calculate cluster similarity between clusters from different single cell datasets/batches/samples.
+Calculate similarities between cell-groups/clusters from any number of independent single-cell experiments, without data integration or batch correction.
 
 # Installation
 
