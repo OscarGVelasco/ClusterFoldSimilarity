@@ -105,6 +105,7 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
                                 datasetR=integer(),
                                 clusterR=integer(),
                                 topFeatureConserved=character(),
+                                geneScore=integer(),
                                 stringsAsFactors=FALSE)
   ## Select common genes in all samples 
   features <- Reduce(intersect,lapply(sceList,function(x){rownames(x)}))
@@ -191,6 +192,7 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
                               datasetR=integer(),
                               clusterR=integer(),
                               topFeatureConserved=character(),
+                              geneScore=integer(),
                               stringsAsFactors=FALSE)
           for(n in seq_along(sceComparative)){
             ## The sample for comparing will be the sample_i+1
@@ -225,7 +227,8 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
                 clusterNames[[i]][j], ## clusterL (left; source of comparison) -> j corresponding to the loop
                 sampleNames[k], ## datasetR
                 clusterNames[[k]][n], ## clusterR (right; target of comparison) -> n corresponding to the internal loop
-                g) ## Top feature conserved
+                g, ## Top feature conserved
+                matColmean[g]) ## Gene Score
             }
           }
         if(is.infinite(topN)){
