@@ -1,5 +1,4 @@
-<h1 style="font-size: 50px;position=center;"><img align="center" height="120" src="./README_files/icon.cluster.png"> ClusterFoldSimilarity</h1>
-
+<h1><img align="center" height="120" src="./README_files/icon.cluster.png"> ClusterFoldSimilarity</h1>
 
 Calculate similarities between cell-groups/clusters from any number of independent single-cell experiments, without data integration or batch correction.
 
