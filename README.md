@@ -1,4 +1,4 @@
-# ClusterFoldSimilarity
+<h1><img align="center" height="120" src="./README_files/icon.cluster.png"> ClusterFoldSimilarity</h1>
 
 Calculate similarities between cell-groups/clusters from any number of independent single-cell experiments, without data integration or batch correction.
 
@@ -13,19 +13,23 @@ install_github("OscarGVelasco/ClusterFoldSimilarity")
 
 # Introduction
 
-Comparing single-cell data across different datasets, samples and batches has demonstrated to be challenging. `ClusterFoldSimilarity` aims to solve the complexity of comparing different single-cell datasets by calculating similarity scores between clusters (or user-defined groups) from any number of single-cell experiments, including different species. It does it by finding similar fold-change patterns across cell groups with a common set of features (e.g. genes). It also reports the top genes that contributed to the similarity value, acting as a feature selection tool.
+Comparing single-cell data across different datasets, samples and batches has demonstrated to be challenging. `ClusterFoldSimilarity` aims to solve the complexity of comparing different single-cell datasets by computing similarity scores between clusters (or user-defined groups) from any number of independent single-cell experiments, including different species and sequencing technologies. It accomplishes this by identifying analogous fold-change patterns across cell groups that share a common set of features (such as genes). Additionally, it selects and reports the top important features that have contributed to the observed similarity, serving as a tool for feature selection.
 
-The output is a table that contains the similarity values for each pair of clusters from all datasets. `ClusterFoldSimilarity` also includes various plotting utilities to enhance the interpretability of the similarity scores.
+The output is a table that contains the similarity values for all the combinations of cluster-pairs from the independent datasets. `ClusterFoldSimilarity` also includes various plotting utilities to enhance the interpretability of the similarity scores.
 
-### Cross-species analysis and sequencing technologies (e.g.: ATAC-Seq vs RNA-Seq)
+### Cross-species analysis and sequencing technologies (e.g.: Human vs Mouse, ATAC-Seq vs RNA-Seq)
 
-`ClusterFoldSimilarity` is able to compare **any number** of independent experiments, including **different organisms**, making it useful for matching cell populations across different organisms, and thus, useful for inter-species analysis. Additionally, it can be used with **single-cell RNA-Seq data, single-cell ATAC-Seq data**, or more broadly, with continuous numerical data that shows changes in feature abundance across a set of common features between different groups. It is compatible with the most used single-cell objects: `r Biocpkg("Seurat")` and `r Biocpkg("SingleCellExperiment")`.
+`ClusterFoldSimilarity` is able to compare **any number** of independent experiments, including **different organisms**, making it useful for matching cell populations across different organisms, and thus, useful for inter-species analysis. Additionally, it can be used with **single-cell RNA-Seq data, single-cell ATAC-Seq data**, or more broadly, with continuous numerical data that shows changes in feature abundance across a set of common features between different groups.
+
+### Compatibility
+
+It can be easily integrated on any existing single-cell analysis pipeline, and it is compatible with the most used single-cell objects: `Seurat` and `SingleCellExperiment`.
 
 # Using ClusterFoldSimilarity to find similar clusters/cell-groups across datasets
 
-Typically `ClusterFoldSimilarity` will receive as input either a list of two or more `r Biocpkg("Seurat")` or `r Biocpkg("SingleCellExperiment")` objects, containing processed data: e.g. filtered, normalized and clustered/grouped by a phenotypic variable. (*PLEASE NOTE: this package is intended to be used with high-end-analyzed data, the better the pre-analysis the better the results `ClusterFoldSimilarity` will obtain, this includes: normalizing and taking care of local technical noise effects, removing non-variant data or selecting the top variant features, removing 0 expression features, reasonable number of clusters, etc.*)
+Typically `ClusterFoldSimilarity` will receive as input either a list of two or more `Seurat` or `SingleCellExperiment` objects, **containing processed data** (filtered, normalized and clustered/grouped by a phenotypic variable.
 
-`ClusterFoldSimilarity` will obtain the **raw data** from these objects ( `GetAssayData(assay, slot = "counts")` for `r Biocpkg("Seurat")` or `counts()` for `r Biocpkg("SingleCellExperiment")` ) and **cluster or label information** ( `Idents()` for `r Biocpkg("Seurat")` and `colLabels()` for `r Biocpkg("SingleCellExperiment")` ).
+`ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, slot = "counts")` for `Seurat` or `counts()` for `SingleCellExperiment` ) and **cluster or label information** ( `Idents()` for `Seurat` and `colLabels()` for `SingleCellExperiment` ).
 
 For the purpose of this example, we will use the package scRNAseq that contains several single-cell datasets, including samples from human and mouse. Here, we use pancreatic single-cell datasets.
 
@@ -228,7 +232,6 @@ ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.human.
 # Similarity score calculation
 
 `ClusterFoldSimilarity` does not need to integrate the data, or apply any batch correction techniques across the datasets that we aim to analyze, which makes it less prone to data-loss or noise. The similarity value is based on the fold-changes between clusters/groups of cells defined by the user. These fold-changes from different independent datasets are first computed using a Bayesian approach, we calculate this fold-change distribution using a permutation analysis that srink the fold-changes with no biological meaning. These differences in abundance are then combined using a pairwise dot product approach, after adding these feataure contributions and applying a fold-change concordance weight, a similarity value is obtained for each of the clusters of each of the datasets present.
-
 
 ``` mermaid
 stateDiagram-v2
