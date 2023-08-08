@@ -27,9 +27,9 @@ It can be easily integrated on any existing single-cell analysis pipeline, and i
 
 # Using ClusterFoldSimilarity to find similar clusters/cell-groups across datasets
 
-Typically `ClusterFoldSimilarity` will receive as input either a list of two or more `Seurat` or `SingleCellExperiment` objects, **containing processed data** (filtered, normalized and clustered/grouped by a phenotypic variable.
+Typically, `ClusterFoldSimilarity` will receive as input either a list of two or more `Seurat` or `SingleCellExperiment` objects, **containing processed data**: filtered and clustered/grouped by a phenotypic variable of our choice.
 
-`ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, slot = "counts")` for `Seurat` or `counts()` for `SingleCellExperiment` ) and **cluster or label information** ( `Idents()` for `Seurat` and `colLabels()` for `SingleCellExperiment` ).
+`ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, slot = "counts")` in the case of `Seurat`, or `counts()` for `SingleCellExperiment` object), and **cluster or label information** (using `Idents()` function from `Seurat`, or `colLabels()` for `SingleCellExperiment` ).
 
 For the sake of illustration, we will employ the scRNAseq package, which contains numerous individual-cell datasets ready for download and encompassing samples from both human and mouse origins. In this example, we specifically utilize 2 human single-cell datasets obtained from the pancreas.
 
@@ -74,7 +74,7 @@ x <- FindClusters(x, resolution = 0.4)
 Once we have all of our single-cell datasets analyzed independently, we can compute the similarity values. `clusterFoldSimilarity()` takes as arguments:
 
 -   `sceList`: a list of single-cell objects (mandatory) either of class `Seurat` or of class `SingleCellExperiment`.
--   `sampleNames`: vector with names for each of the datasets, if not set the dataset will be named in the order given *1, 2, ..., N*.
+-   `sampleNames`: vector with names for each of the datasets. If not set the datasets will be named in the given order as: *1, 2, ..., N*.
 -   `topN`: the top n most similar clusters/groups to report for each cluster/group (default: `1`, the top most similar cluster). If set to `Inf` it will return the values from all the possible cluster-pairs.
 -   `topNFeatures`: the top *n* features (e.g.: genes) that contribute to the observed similarity between the pair of clusters (default: `1`, the top contributing gene). If a negative number, the tool will report the *n* most dissimilar features.
 -   `nSubsampling`: number of subsamplings (1/3 of cells on each iteration) at group level for calculating the fold-changes (default: `15`). At start, the tool will report a message with the recommended number of subsamplings for the given data (average n of subsamplings needed to observe all cells).
