@@ -1,4 +1,4 @@
-<h1><img align="center" height="120" src="./README_files/icon.cluster.png"> ClusterFoldSimilarity</h1>
+<h1><img src="./README_files/icon.cluster.png" align="center" height="120"/> ClusterFoldSimilarity</h1>
 
 Calculate similarities between cell-groups/clusters from any number of independent single-cell experiments, without data integration or batch correction.
 
@@ -31,7 +31,7 @@ Typically `ClusterFoldSimilarity` will receive as input either a list of two or 
 
 `ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, slot = "counts")` for `Seurat` or `counts()` for `SingleCellExperiment` ) and **cluster or label information** ( `Idents()` for `Seurat` and `colLabels()` for `SingleCellExperiment` ).
 
-For the purpose of this example, we will use the package scRNAseq that contains several single-cell datasets, including samples from human and mouse. Here, we use pancreatic single-cell datasets.
+For the sake of illustration, we will employ the scRNAseq package, which contains numerous individual-cell datasets ready for download and encompassing samples from both human and mouse origins. In this example, we specifically utilize 2 human single-cell datasets obtained from the pancreas.
 
 ```{r construct }
 library(Seurat)
@@ -73,26 +73,30 @@ x <- FindClusters(x, resolution = 0.4)
 
 Once we have all of our single-cell datasets analyzed independently, we can compute the similarity values. `clusterFoldSimilarity()` takes as arguments:
 
--   `sceList`: a list of single-cell objects (mandatory) either of class Seurat or of class SingleCellExperiment.
--   `topN`: the top n most similar clusters to report from each pair of clusters (default: `1`, the top most similar cluster). If set to `Inf` it will return all the values from all the cluster-pairs.
--   `topNFeatures`: the top n features (e.g.: genes) that contributes to the similarity between the pair of clusters (default: `1`, the top contributing gene).
--   `nSubsampling`: number of subsamplings (1/3 of cells on each iteration) at group level for calculating the fold-changes.
+-   `sceList`: a list of single-cell objects (mandatory) either of class `Seurat` or of class `SingleCellExperiment`.
+-   `sampleNames`: vector with names for each of the datasets, if not set the dataset will be named in the order given *1, 2, ..., N*.
+-   `topN`: the top n most similar clusters/groups to report for each cluster/group (default: `1`, the top most similar cluster). If set to `Inf` it will return the values from all the possible cluster-pairs.
+-   `topNFeatures`: the top *n* features (e.g.: genes) that contribute to the observed similarity between the pair of clusters (default: `1`, the top contributing gene). If a negative number, the tool will report the *n* most dissimilar features.
+-   `nSubsampling`: number of subsamplings (1/3 of cells on each iteration) at group level for calculating the fold-changes (default: `15`). At start, the tool will report a message with the recommended number of subsamplings for the given data (average n of subsamplings needed to observe all cells).
 
 If we want to use a specific single-cell experiment for annotation (from which we know a ground-truth label, e.g. cell type, cell cycle, treatment... etc.), we can use that label to directly compare the single-cell datasets.
 
-Here we will use the pancreas cell-type labels from the dataset 1 to ilustrate how to match clusters to cell-types using a reference dataset.
+Here we will use the annotated pancreas cell-type labels from the dataset 1 to illustrate how to match clusters to cell-types using a reference dataset:
 
 ```{r}
 # Assign cell-type annotated from the original study to the cell labels:
 Idents(singlecell.object.list[[1]]) <- factor(singlecell.object.list[[1]]@meta.data$cell.type)
 
 library(ClusterFoldSimilarity)
-similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, sampleNames = c("human","human.NA"),
-                                          topN=1, nSubsampling = 24)
+# Compute similarities
+similarity.table <- clusterFoldSimilarity(sceList = singlecell.object.list, 
+                                          sampleNames = c("human","human.NA"),
+                                          topN = 1, 
+                                          nSubsampling = 24)
 head(similarity.table)
 ```
 
-By default, `clusterFoldSimilarity()` will plot a graph network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained, the arrows point in the direction of the similarity (datasetL:clusterL -\> datasetR:clusterR); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar.
+By default, `clusterFoldSimilarity()` will plot a graph network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained. The arrows point in the direction of the similarity (datasetL:clusterL -\> datasetR:clusterR); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar. The graph plot can also be obtained by using the function `plotClustersGraph()` from this package, using as input the similarity table.
 
 In this example, as we have information regarding cell-type labels, we can check how the cell types match by calculating the most abundant cell type on each of the similar clusters:
 
@@ -111,35 +115,41 @@ cbind.data.frame(type.count,
 
 ## Retrieving the top-n similarities
 
-If we suspect that clusters could be related with more than one cluster of other datasets, we can retrieve the top n similarities for each cluster:
+If we suspect that clusters/groups could be related with more than one cluster/groups of other datasets, we can retrieve the top n similarities:
 
 ```{r}
 # Retrieve the top 3 similar cluster for each of the clusters:
-similarity.table.3top <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=3,
-                                             sampleNames = c("human","human.NA"), nSubsampling = 24)
+similarity.table.3top <- clusterFoldSimilarity(sceList = singlecell.object.list, 
+                                               topN = 3, # Obtain top 3 values
+                                               sampleNames = c("human","human.NA"), 
+                                               nSubsampling = 24)
 head(similarity.table.3top)
 ```
 
 ## Obtaining the top-n feature markers
 
-If we are interested on the features that contribute the most to the similarity, we can retrieve the top n features:
+If we are interested on the features that contributed to the similarity score (most important feature markers), we can retrieve the top n:
 
 ```{r}
 # Retrieve the top 5 features that contribute the most to the similarity between each pair of clusters:
-similarity.table.5top.features <- clusterFoldSimilarity(sceList=singlecell.object.list, topNFeatures=5, nSubsampling = 24)
+similarity.table.5top.features <- clusterFoldSimilarity(sceList = singlecell.object.list, 
+                                                        topNFeatures = 5, 
+                                                        nSubsampling = 24)
 head(similarity.table.5top.features, n=10)
 ```
 
 ## Retrieving all the similarity values and plotting a similarity heatmap
 
-Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one cluster that is similar to a cluster of interest, finding the most dissimilar clusters, etc). To obtain all the values, we need to specify `topN=Inf`:
+Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one group of cells that are similar to a group of interest, identify the mixture of cell-types of a specific cluster, finding the most dissimilar clusters, etc). To obtain all the similarity scores, we need to specify `topN=Inf`:
 
 ```{r}
-similarity.table.all.values <- clusterFoldSimilarity(sceList=singlecell.object.list, sampleNames = c("human","human.NA"), topN=Inf)
+similarity.table.all.values <- clusterFoldSimilarity(sceList = singlecell.object.list, 
+                                                     sampleNames = c("human","human.NA"), 
+                                                     topN = Inf)
 dim(similarity.table.all.values)
 ```
 
-It can be convenient to create a matrix with all the similarity values from the comparison of two datasets:
+For downstream analysis of the similarities, it can be convenient to create a matrix with all the scores from the comparison of two datasets:
 
 ```{r}
 library(dplyr)
@@ -158,7 +168,7 @@ similarity.matrix.all
 
 # Using ClusterFoldSimilarity across species and numerous datasets:
 
-`ClusterFoldSimilarity` can compare **any number** of independent studies, including **different organisms**, making it useful for inter-species analysis. Also, it can be used on different sequencing data technologies: e.g.: compare single-cell **ATAC-Seq and RNA-seq**.
+`ClusterFoldSimilarity` can compare **any number** of independent studies, including **different organisms**, making it useful for inter-species analysis. Also, it can be used on different sequencing data technologies: e.g.: compare single-cell **ATAC-Seq vs RNA-seq**.
 
 In this example, we are going to add a pancreas single-cell dataset from **Mouse** to the 2 existing ones from **Human** that we have processed in the previous steps.
 
@@ -214,17 +224,19 @@ Idents(singlecell.object.list[[3]]) <- factor(singlecell.object.list[[3]]@meta.d
 # We subset the most variable genes in each experiment
 singlecell.object.list.variable <- lapply(singlecell.object.list, function(x){x[VariableFeatures(x),]})
 
-similarity.table.human.mouse <- clusterFoldSimilarity(sceList=singlecell.object.list.variable,
-                                                        sampleNames=c("human","human.NA","mouse"),
-                                                        topN=1, nSubsampling = 24)
+similarity.table.human.mouse <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
+                                                        sampleNames = c("human","human.NA","mouse"),
+                                                        topN = 1, 
+                                                        nSubsampling = 24)
 ```
 
-We can visualize all the similarities for each cluster to the annotated cell-groups:
+We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in.
 
 ```{r}
-similarity.table.human.mouse.all <- clusterFoldSimilarity(sceList=singlecell.object.list.variable,
-                                                          topN=Inf, nSubsampling = 24,
-                                                          sampleNames=c("human","human.NA","mouse"))
+similarity.table.human.mouse.all <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
+                                                          sampleNames = c("human","human.NA","mouse"),
+                                                          topN = Inf, 
+                                                          nSubsampling = 24)
 # We can select which dataset to plot in the Y-axis:
 ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.human.mouse.all, mainDataset="human.NA")
 ```
