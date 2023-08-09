@@ -30,6 +30,8 @@ The function returns a DataFrame containing the best top similarities between al
    \tab \cr
    \code{sem} \tab Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes. \cr
    \tab \cr
+   \code{w} \tab Weight associated with the score value. \cr
+   \tab \cr
    \code{datasetL} \tab Dataset left, the dataset/sample which has been used to be compared.  \cr
    \tab \cr
    \code{clusterL} \tab Cluster left, the cluster source from datasetL which has been compared. \cr
@@ -49,17 +51,17 @@ This function will calculate a similarity coeficient using the fold changes of s
 is calculated using the dotproduct of every pairwise combination of Fold Changes between a source cluster/group i from sample n and all the target clusters/groups in sample j.
 }
 \examples{
-if (requireNamespace("Seurat") & requireNamespace("SingleCellExperiment") & requireNamespace("scRNAseq")){
+if (requireNamespace("Seurat") & requireNamespace("SingleCellExperiment") & requireNamespace("scRNAseq") & requireNamespace("SeuratObject")){
 library(ClusterFoldSimilarity)
 # Mouse brain single-cell RNA-seq 1 from Romanov et. al.
 mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
 colnames(mouse.brain.romanov) <- colData(mouse.brain.romanov)$cellID
 rownames(colData(mouse.brain.romanov)) <- colData(mouse.brain.romanov)$cellID
-singlecell.1.seurat <- CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
+singlecell.1.seurat <- Seurat::CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
 
 # Mouse brain single-cell RNA-seq 2 from Zeisel et. al.
 mouse.brain.zei <- scRNAseq::ZeiselBrainData(ensembl = TRUE)
-singlecell.2.seurat <- CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
+singlecell.2.seurat <- Seurat::CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
 
 # Create a list with the unprocessed single-cell datasets
 singlecell.object.list <- list(singlecell.1.seurat,singlecell.2.seurat)
@@ -73,9 +75,10 @@ singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
   x <- FindClusters(x, resolution = 0.1)
 })
 # Calculate the similarity between the two datasets:
-similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1)
+similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1, nSubsampling=18)
 head(similarity.table)
 }
+
 }
 \author{
 Oscar Gonzalez-Velasco

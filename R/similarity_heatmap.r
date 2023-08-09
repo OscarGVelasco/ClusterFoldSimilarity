@@ -12,8 +12,7 @@
 #' @return The function returns a heatmap ggplot object. 
 #' 
 #' @examples
-#' if (!requireNamespace("Seurat", quietly=TRUE)){stop("Seurat package not available", call.=FALSE)}
-#' if (!requireNamespace("SingleCellExperiment", quietly=TRUE)){stop("SingleCellExperiment package not available", call.=FALSE)}
+#' if (requireNamespace("Seurat") & requireNamespace("SingleCellExperiment") & requireNamespace("scRNAseq") & requireNamespace("SeuratObject")){
 #' library(ClusterFoldSimilarity)
 #' # Mouse brain single-cell RNA-seq 1 from Romanov et. al.
 #' mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
@@ -41,6 +40,7 @@
 #' similarity.table.all <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=Inf)
 #' # Using the dataset 2 as a reference on the Y-axis of the heatmap:
 #' similarityHeatmap(similarityTable=similarity.table.all, mainDataset=2)
+#' }
 #' 
 #' @author Oscar Gonzalez-Velasco
 #' @import ggplot2

@@ -12,8 +12,7 @@
 #' of that similarity between clusters.
 #' 
 #' @examples 
-#' if (!requireNamespace("Seurat", quietly=TRUE)){stop("Seurat package not available", call.=FALSE)}
-#' if (!requireNamespace("SingleCellExperiment", quietly=TRUE)){stop("SingleCellExperiment package not available", call.=FALSE)}
+#' if (requireNamespace("Seurat") & requireNamespace("SingleCellExperiment") & requireNamespace("scRNAseq") & requireNamespace("SeuratObject")){
 #' library(ClusterFoldSimilarity)
 #' # Mouse brain single-cell RNA-seq 1 from Romanov et. al.
 #' mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
@@ -41,6 +40,7 @@
 #' similarityTable.top <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1)
 #' # The same plot can be created using:
 #' plotClustersGraph(similarityTable=similarityTable.top)
+#' }
 #' 
 #' @author Oscar Gonzalez-Velasco
 #' @importFrom igraph graph_from_data_frame layout_with_fr V

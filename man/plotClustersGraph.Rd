@@ -22,8 +22,7 @@ This function will calculate a similarity coeficient using the fold changes of s
 is calculated using the dotproduct of every pairwise combination of Fold Changes between a source cluster i of sample n and all the target clusters in sample j.
 }
 \examples{
-if (!requireNamespace("Seurat", quietly=TRUE)){stop("Seurat package not available", call.=FALSE)}
-if (!requireNamespace("SingleCellExperiment", quietly=TRUE)){stop("SingleCellExperiment package not available", call.=FALSE)}
+if (requireNamespace("Seurat") & requireNamespace("SingleCellExperiment") & requireNamespace("scRNAseq") & requireNamespace("SeuratObject")){
 library(ClusterFoldSimilarity)
 # Mouse brain single-cell RNA-seq 1 from Romanov et. al.
 mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
@@ -51,6 +50,7 @@ singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
 similarityTable.top <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1)
 # The same plot can be created using:
 plotClustersGraph(similarityTable=similarityTable.top)
+}
 
 }
 \author{

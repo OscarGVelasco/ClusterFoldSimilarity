@@ -43,13 +43,13 @@ table(colData(pancreas_muraro)$label); dim(pancreas_muraro)
 pancreas_muraro <- pancreas_muraro[,rownames(colData(pancreas_muraro)[!is.na(colData(pancreas_muraro)$label),])]
 colData(pancreas_muraro)$cell.type <- colData(pancreas_muraro)$label
 rownames(pancreas_muraro) <- unlist(lapply(strsplit(rownames(pancreas_muraro),split = "__"),function(x)x[[1]]))
-singlecell.1.seurat <- CreateSeuratObject(counts = counts(pancreas_muraro),meta.data = as.data.frame(colData(pancreas_muraro)))
+singlecell.1.seurat <- Seurat::CreateSeuratObject(counts = counts(pancreas_muraro),meta.data = as.data.frame(colData(pancreas_muraro)))
 
 # Human pancreatic single cell data 2
 pancreas_baron <- scRNAseq::BaronPancreasData(which = "human",ensembl = F)
 table(colData(pancreas_baron)$label); dim(pancreas_baron)
 colData(pancreas_baron)$cell.type <- colData(pancreas_baron)$label
-singlecell.2.seurat <- CreateSeuratObject(counts = counts(pancreas_baron),meta.data = as.data.frame(colData(pancreas_baron)))
+singlecell.2.seurat <- Seurat::CreateSeuratObject(counts = counts(pancreas_baron),meta.data = as.data.frame(colData(pancreas_baron)))
 
 ```
 

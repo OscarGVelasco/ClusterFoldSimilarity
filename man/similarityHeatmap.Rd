@@ -28,8 +28,7 @@ This function plots a heatmap using ggplot. It is intended to be used with the o
 datasetR (the dataset against datasetL has been contrasted), clusterL (clusters from datasetL), clusterR (clusters from datasetR) and the similarityValue.
 }
 \examples{
-if (!requireNamespace("Seurat", quietly=TRUE)){stop("Seurat package not available", call.=FALSE)}
-if (!requireNamespace("SingleCellExperiment", quietly=TRUE)){stop("SingleCellExperiment package not available", call.=FALSE)}
+if (requireNamespace("Seurat") & requireNamespace("SingleCellExperiment") & requireNamespace("scRNAseq") & requireNamespace("SeuratObject")){
 library(ClusterFoldSimilarity)
 # Mouse brain single-cell RNA-seq 1 from Romanov et. al.
 mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
@@ -57,6 +56,7 @@ singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
 similarity.table.all <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=Inf)
 # Using the dataset 2 as a reference on the Y-axis of the heatmap:
 similarityHeatmap(similarityTable=similarity.table.all, mainDataset=2)
+}
 
 }
 \author{

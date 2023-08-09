@@ -37,11 +37,11 @@
 #' mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
 #' colnames(mouse.brain.romanov) <- colData(mouse.brain.romanov)$cellID
 #' rownames(colData(mouse.brain.romanov)) <- colData(mouse.brain.romanov)$cellID
-#' singlecell.1.seurat <- SeuratObject::CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
+#' singlecell.1.seurat <- Seurat::CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
 #' 
 #' # Mouse brain single-cell RNA-seq 2 from Zeisel et. al.
 #' mouse.brain.zei <- scRNAseq::ZeiselBrainData(ensembl = TRUE)
-#' singlecell.2.seurat <- SeuratObject::CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
+#' singlecell.2.seurat <- Seurat::CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
 #' 
 #' # Create a list with the unprocessed single-cell datasets
 #' singlecell.object.list <- list(singlecell.1.seurat,singlecell.2.seurat)
@@ -58,6 +58,7 @@
 #' similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1, nSubsampling=18)
 #' head(similarity.table)
 #' }
+#' 
 #' @author Oscar Gonzalez-Velasco
 #' @importFrom stats sd
 #' @importFrom utils head
