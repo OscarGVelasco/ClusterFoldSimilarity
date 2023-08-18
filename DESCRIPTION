@@ -12,7 +12,8 @@ Encoding: UTF-8
 Imports: 
     igraph, 
     ggplot2,
-    scales
+    scales,
+    BiocParallel
 Suggests: 
     knitr,
     rmarkdown,

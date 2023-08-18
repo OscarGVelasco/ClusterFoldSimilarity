@@ -17,18 +17,21 @@
 #' @author Oscar Gonzalez-Velasco
 #' @importFrom("methods", "is")
 #' @importFrom("stats", "median", "optim", "pnorm", "quantile", "var")
+#' @importFrom BiocParallel bplapply
 #' @keywords internal
-pairwiseClusterFoldChange <- function(x, clusters, nSubsampling){
+pairwiseClusterFoldChange <- function(x, clusters, nSubsampling, functToApply){
   countData <- x
   minNumFeatures <- 3
   cellPortion <- 1/3
-  fcFunct <- function(x,y) "-"(log2(x),log2(y)) 
+  fcFunct <- function(x,y) "-"(log2(x),log2(y))
+  pseudoCount <- function(x){x+sqrt((x*x)+1)}
   clusters <- as.factor(clusters)
   cellGroups <- split(seq_len(ncol(countData)), clusters)
   j <- expand.grid(levels(clusters), levels(clusters))
   j <- t(j[!(j[,1] == j[,2]),])[c(2, 1),]
   # Sub-sampling of cells - we will randomly select "nSubsampling" times the "cellPortion" of the cells and calculate the fold change mean
-  listOfFolds <- lapply(seq(1, nSubsampling), function(sampling){
+  listOfFolds <- functToApply(seq(1, nSubsampling), function(sampling){
+    # listOfFolds <- lapply(seq(1, nSubsampling), function(sampling){
     i <- lapply(cellGroups,function(cells)sample(x=cells, size=max((length(cells)*cellPortion), 1)))
     x <- vapply(i, function(i){ rowMeans(countData[,i,drop=FALSE])}, FUN.VALUE=double(nrow(countData)))
     logFolds <- mapply(function(i, k){
@@ -48,8 +51,10 @@ pairwiseClusterFoldChange <- function(x, clusters, nSubsampling){
       }
       if (is.infinite(muPri) || is.infinite(varPri)) {
         # pseudocount = 1 approach
-        muPri <- mean(fcFunct(x[,i]+1, x[,k]+1))
-        varPri <- var(fcFunct(x[,i]+1, x[,k]+1))
+        # muPri <- mean(fcFunct(x[,i]+1, x[,k]+1))
+        # varPri <- var(fcFunct(x[,i]+1, x[,k]+1))
+        muPri <- mean(fcFunct(pseudoCount(x[,i]), pseudoCount(x[,k])))
+        varPri <- var(fcFunct(pseudoCount(x[,i]), pseudoCount(x[,k])))
       }
       sqrFunct <- function(params)((digamma(params[1])-digamma(params[2])-muPri)^2 + (trigamma(params[1])+trigamma(params[2])-varPri)^2)
       pseudoCounts <- optim(c(1, 1), sqrFunct)$par

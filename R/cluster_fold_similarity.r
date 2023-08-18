@@ -10,6 +10,7 @@
 #' @param topN Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1). If set to Inf, then all similarity values from all possible pairs of clusters are returned.
 #' @param topNFeatures Numeric. Number of top features that explains the clusters similarity to report for each cluster comparison (default 1). If topN = Inf then topNFeatures is automatically set to 1.
 #' @param nSubsampling Numeric. Number of random sampling of cells to achieve fold change stability (default 15).
+#' @param cores Numeric. Number of cores to use for parallel computing (default 1).
 #' 
 #' @return The function returns a DataFrame containing the best top similarities between all possible pairs of single cell samples. Column values are:
 #' \tabular{ll}{
@@ -62,8 +63,9 @@
 #' @author Oscar Gonzalez-Velasco
 #' @importFrom stats sd
 #' @importFrom utils head
+#' @importFrom BiocParallel bplapply
 #' @export
-clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFeatures=1, nSubsampling=15){
+clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFeatures=1, nSubsampling=15, cores=1){
   if(is.null(sceList) | (length(sceList)<2)){
     stop("At least two Single Cell Experiments are needed for cluster comparison.")
   }
@@ -96,6 +98,12 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   }
   if (!isSeurat & !isSce){
     stop("One or more objects in the input list is neither of class Seurat nor SingleDataExperiment.")
+  }
+  if(cores>1){
+    #BiocParallel::MulticoreParam(workers = 6)
+    functToApply <- BiocParallel::bplapply
+  }else{
+    functToApply <- base::lapply
   }
   ## Final var names
   summaryResults <- data.frame(similarityValue=integer(),
@@ -166,13 +174,15 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   message(paste0("Using a cell subsampling of n=",nSubsampling," (recomended n=",round(quantile(nOfDraws, probs=0.85)),")"))
   message("Computing fold changes.")
   if(isSce){
-    markersSceList <- lapply(sceList, function(x){
-      pairwiseClusterFoldChange(x=as.matrix(SingleCellExperiment::counts(x)), clusters=SingleCellExperiment::colLabels(x), nSubsampling=nSubsampling) # Raw counts
+    markersSceList <- functToApply(sceList, function(x){
+    #  markersSceList <- lapply(sceList, function(x){
+      pairwiseClusterFoldChange(x=as.matrix(SingleCellExperiment::counts(x)), clusters=SingleCellExperiment::colLabels(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts
     })
   }
   if(isSeurat){
-    markersSceList <- lapply(sceList, function(x){
-      pairwiseClusterFoldChange(x=as.matrix(Seurat::GetAssayData(x, slot="counts")), clusters=Seurat::Idents(x), nSubsampling=nSubsampling) # Raw counts from Seurat object
+    markersSceList <- functToApply(sceList, function(x){
+    # markersSceList <- lapply(sceList, function(x){
+      pairwiseClusterFoldChange(x=as.matrix(Seurat::GetAssayData(x, slot="counts")), clusters=Seurat::Idents(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts from Seurat object
     })
   }
   ## Main loop - samples
