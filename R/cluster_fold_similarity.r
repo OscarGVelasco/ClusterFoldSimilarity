@@ -10,7 +10,7 @@
 #' @param topN Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1). If set to Inf, then all similarity values from all possible pairs of clusters are returned.
 #' @param topNFeatures Numeric. Number of top features that explains the clusters similarity to report for each cluster comparison (default 1). If topN = Inf then topNFeatures is automatically set to 1.
 #' @param nSubsampling Numeric. Number of random sampling of cells to achieve fold change stability (default 15).
-#' @param cores Numeric. Number of cores to use for parallel computing (default 1).
+#' @param parallel Boolean. Whether to use parallel computing using BiocParallel or not (default FALSE).
 #' 
 #' @return The function returns a DataFrame containing the best top similarities between all possible pairs of single cell samples. Column values are:
 #' \tabular{ll}{
@@ -65,7 +65,7 @@
 #' @importFrom utils head
 #' @importFrom BiocParallel bplapply
 #' @export
-clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFeatures=1, nSubsampling=15, cores=1){
+clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFeatures=1, nSubsampling=15, parallel=FALSE){
   if(is.null(sceList) | (length(sceList)<2)){
     stop("At least two Single Cell Experiments are needed for cluster comparison.")
   }
@@ -99,11 +99,10 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   if (!isSeurat & !isSce){
     stop("One or more objects in the input list is neither of class Seurat nor SingleDataExperiment.")
   }
-  if(cores>1){
+  functToApply <- base::lapply
+  if(isTRUE(parallel)){
     #BiocParallel::MulticoreParam(workers = 6)
     functToApply <- BiocParallel::bplapply
-  }else{
-    functToApply <- base::lapply
   }
   ## Final var names
   summaryResults <- data.frame(similarityValue=integer(),
