@@ -30,8 +30,8 @@ pairwiseClusterFoldChange <- function(x, clusters, nSubsampling, functToApply){
   j <- expand.grid(levels(clusters), levels(clusters))
   j <- t(j[!(j[,1] == j[,2]),])[c(2, 1),]
   # Sub-sampling of cells - we will randomly select "nSubsampling" times the "cellPortion" of the cells and calculate the fold change mean
-  # listOfFolds <- functToApply(seq(1, nSubsampling), function(sampling){
-  listOfFolds <- lapply(seq(1, nSubsampling), function(sampling){
+  listOfFolds <- functToApply(seq(1, nSubsampling), function(sampling){
+    # listOfFolds <- lapply(seq(1, nSubsampling), function(sampling){
     i <- lapply(cellGroups,function(cells)sample(x=cells, size=max((length(cells)*cellPortion), 1)))
     x <- vapply(i, function(i){ rowMeans(countData[,i,drop=FALSE])}, FUN.VALUE=double(nrow(countData)))
     logFolds <- mapply(function(i, k){

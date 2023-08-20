@@ -174,21 +174,19 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   message("Computing fold changes.")
   if(isSce){
     markersSceList <- functToApply(sceList, function(x){
-    #  markersSceList <- lapply(sceList, function(x){
       pairwiseClusterFoldChange(x=as.matrix(SingleCellExperiment::counts(x)), clusters=SingleCellExperiment::colLabels(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts
     })
   }
   if(isSeurat){
     markersSceList <- functToApply(sceList, function(x){
-    # markersSceList <- lapply(sceList, function(x){
       pairwiseClusterFoldChange(x=as.matrix(Seurat::GetAssayData(x, slot="counts")), clusters=Seurat::Idents(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts from Seurat object
     })
   }
   ## Main loop - samples
-  for (i in seq_len(length(markersSceList))){
+  intermediateResults <- sapply(seq_len(length(markersSceList)),function(i){
     ## Pick a sample in ascending order
     y <- markersSceList[[i]]
-    for (j in seq_along(y)){
+    intermediateResults <- functToApply(seq_along(y),function(j){ # Parallel computing if selected
       ## We choose a root cluster and compare it with clusters of samples i+1+...+n
       root <- y[[j]]
       for (k in seq(from=1, to=length(markersSceList), by=1)){
@@ -218,8 +216,6 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
             topGenes <- head(colnames(mat)[order(matColmean, decreasing=TRUE)],n=topNFeatures)
             nNegative <- 0
             nPositive <- 0
-            # nNegative <- sum(matColmean<0, na.rm=TRUE)
-            # nPositive <- sum(matColmean>0, na.rm=TRUE)
             nNegative <- sum(matColmean< (-0.2), na.rm=TRUE)
             nPositive <- sum(matColmean> (0.20), na.rm=TRUE)
             sem <- round(sd(matColmean) / sqrt(nNegative + nPositive), digits=2)
@@ -248,8 +244,10 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
         }
         summaryResults <- rbind.data.frame(summaryResults,results)
       }
-    }
-  } # End main loop
+    return(summaryResults)
+    })
+  }) # End main loop - sapply
+  summaryResults <- do.call("rbind",lapply(intermediateResults,function(x)do.call(rbind, x)))
   if(is.infinite(topN)){
   message("\n Ploting heatmap using the similarity values of clusters (topN=Inf).")
   print(similarityHeatmap(similarityTable=summaryResults))
