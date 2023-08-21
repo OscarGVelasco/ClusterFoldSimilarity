@@ -9,7 +9,8 @@ Authors@R: person("Oscar", "Gonzalez-Velasco",
 Description: This package calculates a similarity coefficient using the fold changes of shared features (e.g. genes) among clusters of different samples/batches/datasets. The similarity coefficient is calculated using the dot-product (Hadamard product) of every pairwise combination of Fold Changes between a source cluster i of sample/dataset n and all the target clusters j in sample/dataset m
 License: Artistic-2.0
 Encoding: UTF-8
-Imports: 
+Imports:
+    methods,
     igraph, 
     ggplot2,
     scales,

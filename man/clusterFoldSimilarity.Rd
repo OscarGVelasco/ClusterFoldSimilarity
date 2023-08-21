@@ -10,7 +10,7 @@ clusterFoldSimilarity(
   topN = 1,
   topNFeatures = 1,
   nSubsampling = 15,
-  cores = 1
+  parallel = FALSE
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ clusterFoldSimilarity(
 
 \item{nSubsampling}{Numeric. Number of random sampling of cells to achieve fold change stability (default 15).}
 
-\item{cores}{Numeric. Number of cores to use for parallel computing (default 1).}
+\item{parallel}{Boolean. Whether to use parallel computing using BiocParallel or not (default FALSE).}
 }
 \value{
 The function returns a DataFrame containing the best top similarities between all possible pairs of single cell samples. Column values are:
@@ -54,31 +54,31 @@ This function will calculate a similarity coeficient using the fold changes of s
 is calculated using the dotproduct of every pairwise combination of Fold Changes between a source cluster/group i from sample n and all the target clusters/groups in sample j.
 }
 \examples{
-if (requireNamespace("Seurat") & requireNamespace("SingleCellExperiment") & requireNamespace("scRNAseq") & requireNamespace("SeuratObject")){
+if (requireNamespace("Seurat") & requireNamespace("SeuratObject")){
 library(ClusterFoldSimilarity)
-# Mouse brain single-cell RNA-seq 1 from Romanov et. al.
-mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
-colnames(mouse.brain.romanov) <- colData(mouse.brain.romanov)$cellID
-rownames(colData(mouse.brain.romanov)) <- colData(mouse.brain.romanov)$cellID
-singlecell.1.seurat <- Seurat::CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
-
-# Mouse brain single-cell RNA-seq 2 from Zeisel et. al.
-mouse.brain.zei <- scRNAseq::ZeiselBrainData(ensembl = TRUE)
-singlecell.2.seurat <- Seurat::CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
-
+library(Seurat)
+# data dimensions
+nfeatures <- 2000; ncells <- 400
+# single-cell 1
+counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+rownames(counts) <- paste0("gene",seq(nfeatures))
+colnames(counts) <- paste0("cell",seq(ncells))
+colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3"),size = ncells,replace = TRUE),
+                     row.names=paste0("cell",seq(ncells)))
+seu.1 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+Idents(object = seu.1) <- "cluster"
+# single-cell 2
+counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+rownames(counts) <- paste0("gene",seq(nfeatures))
+colnames(counts) <- paste0("cell",seq(ncells))
+colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3","Cluster4"),size = ncells,replace = TRUE),
+                      row.names=paste0("cell",seq(ncells)))
+seu.2 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+Idents(object = seu.2) <- "cluster"
 # Create a list with the unprocessed single-cell datasets
-singlecell.object.list <- list(singlecell.1.seurat,singlecell.2.seurat)
-# Apply the same processing to each dataset and return a list of single-cell analysis
-singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
-  x <- NormalizeData(x)
-  x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 1000)
-  x <- ScaleData(x,features = VariableFeatures(x))
-  x <- RunPCA(x, features = VariableFeatures(object = x))
-  x <- FindNeighbors(x, dims = seq(10))
-  x <- FindClusters(x, resolution = 0.1)
-})
-# Calculate the similarity between the two datasets:
-similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1, nSubsampling=18)
+singlecell.object.list <- list(seu.1, seu.2)
+
+similarity.table <- clusterFoldSimilarity(sceList = singlecell.object.list, sampleNames = c("sc1","sc2"))
 head(similarity.table)
 }
 
