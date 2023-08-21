@@ -49,8 +49,6 @@ Parallel computing is available through the option parallel=TRUE which make use 
 
 # Using ClusterFoldSimilarity to find similar clusters/cell-groups across datasets
 
-# Using ClusterFoldSimilarity to find similar clusters/cell-groups across datasets
-
 Typically, `ClusterFoldSimilarity` will receive as input either a list of two or more `Seurat` or `SingleCellExperiment` objects, **containing processed data**: filtered and clustered/grouped by a phenotypic variable of our choice.
 
 `ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, slot = "counts")` in the case of `Seurat`, or `counts()` for `SingleCellExperiment` object), and **cluster or label information** (using `Idents()` function from `Seurat`, or `colLabels()` for `SingleCellExperiment` ).
@@ -62,7 +60,7 @@ library(Seurat)
 library(scRNAseq)
 library(dplyr)
 # Human pancreatic single cell data 1
-pancreas_muraro <- scRNAseq::MuraroPancreasData(ensembl = F)
+pancreas_muraro <- scRNAseq::MuraroPancreasData(ensembl = FALSE)
 table(colData(pancreas_muraro)$label); dim(pancreas_muraro)
 pancreas_muraro <- pancreas_muraro[,rownames(colData(pancreas_muraro)[!is.na(colData(pancreas_muraro)$label),])]
 colData(pancreas_muraro)$cell.type <- colData(pancreas_muraro)$label
@@ -70,7 +68,7 @@ rownames(pancreas_muraro) <- unlist(lapply(strsplit(rownames(pancreas_muraro),sp
 singlecell.1.seurat <- CreateSeuratObject(counts = counts(pancreas_muraro),meta.data = as.data.frame(colData(pancreas_muraro)))
 
 # Human pancreatic single cell data 2
-pancreas_baron <- scRNAseq::BaronPancreasData(which = "human",ensembl = F)
+pancreas_baron <- scRNAseq::BaronPancreasData(which = "human",ensembl = FALSE)
 table(colData(pancreas_baron)$label); dim(pancreas_baron)
 colData(pancreas_baron)$cell.type <- colData(pancreas_baron)$label
 singlecell.2.seurat <- CreateSeuratObject(counts = counts(pancreas_baron),meta.data = as.data.frame(colData(pancreas_baron)))
@@ -189,7 +187,7 @@ In this example, we are going to add a pancreas single-cell dataset from **Mouse
 
 ```{r}
 # Mouse pancreatic single cell data
-pancreas_baron_mm <- scRNAseq::BaronPancreasData(which = "mouse",ensembl = F)
+pancreas_baron_mm <- scRNAseq::BaronPancreasData(which = "mouse",ensembl = FALSE)
 table(colData(pancreas_baron_mm)$label); dim(pancreas_baron_mm)
 colData(pancreas_baron_mm)$cell.type <- colData(pancreas_baron_mm)$label
 # Translate mouse gene ids to human ids

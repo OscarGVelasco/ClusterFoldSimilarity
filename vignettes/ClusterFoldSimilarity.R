@@ -12,66 +12,78 @@ library(ClusterFoldSimilarity)
 ## ----construct----------------------------------------------------------------
 library(Seurat)
 library(scRNAseq)
+library(dplyr)
+# Human pancreatic single cell data 1
+pancreas_muraro <- scRNAseq::MuraroPancreasData(ensembl = FALSE)
+table(colData(pancreas_muraro)$label); dim(pancreas_muraro)
+pancreas_muraro <- pancreas_muraro[,rownames(colData(pancreas_muraro)[!is.na(colData(pancreas_muraro)$label),])]
+colData(pancreas_muraro)$cell.type <- colData(pancreas_muraro)$label
+rownames(pancreas_muraro) <- unlist(lapply(strsplit(rownames(pancreas_muraro),split = "__"),function(x)x[[1]]))
+singlecell.1.seurat <- CreateSeuratObject(counts = counts(pancreas_muraro),meta.data = as.data.frame(colData(pancreas_muraro)))
 
-# Mouse brain single-cell RNA-seq 1 from Romanov et. al.
-mouse.brain.romanov <- scRNAseq::RomanovBrainData(ensembl = TRUE)
-colnames(mouse.brain.romanov) <- colData(mouse.brain.romanov)$cellID
-rownames(colData(mouse.brain.romanov)) <- colData(mouse.brain.romanov)$cellID
-singlecell.1.seurat <- CreateSeuratObject(counts = counts(mouse.brain.romanov),meta.data = as.data.frame(colData(mouse.brain.romanov)))
+# Human pancreatic single cell data 2
+pancreas_baron <- scRNAseq::BaronPancreasData(which = "human",ensembl = FALSE)
+table(colData(pancreas_baron)$label); dim(pancreas_baron)
+colData(pancreas_baron)$cell.type <- colData(pancreas_baron)$label
+singlecell.2.seurat <- CreateSeuratObject(counts = counts(pancreas_baron),meta.data = as.data.frame(colData(pancreas_baron)))
 
-# Mouse brain single-cell RNA-seq 2 from Zeisel et. al.
-mouse.brain.zei <- scRNAseq::ZeiselBrainData(ensembl = TRUE)
-singlecell.2.seurat <- CreateSeuratObject(counts = counts(mouse.brain.zei),meta.data = as.data.frame(colData(mouse.brain.zei)))
 
 ## -----------------------------------------------------------------------------
 # Create a list with the unprocessed single-cell datasets
 singlecell.object.list <- list(singlecell.1.seurat,singlecell.2.seurat)
 # Apply the same processing to each dataset and return a list of single-cell analysis
 singlecell.object.list <- lapply(X = singlecell.object.list, FUN = function(x){
-  x <- NormalizeData(x)
-  x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 1000)
-  x <- ScaleData(x,features = VariableFeatures(x))
-  x <- RunPCA(x, features = VariableFeatures(object = x))
-  x <- FindNeighbors(x, dims = seq(10))
-  x <- FindClusters(x, resolution = 0.1)
+x <- NormalizeData(x)
+x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 2000)
+x <- ScaleData(x,features = VariableFeatures(x))
+x <- RunPCA(x, features = VariableFeatures(object = x))
+x <- FindNeighbors(x, dims = seq(16))
+x <- FindClusters(x, resolution = 0.4)
 })
 
 ## -----------------------------------------------------------------------------
+# Assign cell-type annotated from the original study to the cell labels:
+Idents(singlecell.object.list[[1]]) <- factor(singlecell.object.list[[1]]@meta.data$cell.type)
+
 library(ClusterFoldSimilarity)
-similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=1)
+similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, sampleNames = c("human","human.NA"),
+                                          topN=1, nSubsampling = 24)
 head(similarity.table)
 
 ## -----------------------------------------------------------------------------
-label1 <- "level1.class" # name of label of data 1
-label2 <- "level1class" # name of label of data 2
 
-apply(similarity.table[similarity.table$datasetL == 1,],1,function(x){
-  n1 <- names(which.max(table(singlecell.object.list[[as.numeric(x["datasetL"])]]@meta.data[singlecell.object.list[[as.numeric(x["datasetL"])]]@meta.data$seurat_clusters == x["clusterL"],label1])))
-  n2 <- names(which.max(table(singlecell.object.list[[as.numeric(x["datasetR"])]]@meta.data[singlecell.object.list[[as.numeric(x["datasetR"])]]@meta.data$seurat_clusters == x["clusterR"],label2])))
-  return(paste("dataset 1 cluster",x["clusterL"],"top cell.type:",n1,"VS dataset 2 cluster",x["clusterR"],"top cell.type:",n2))
-  })
+type.count <- singlecell.object.list[[2]]@meta.data %>% 
+  group_by(seurat_clusters) %>% 
+  count(cell.type) %>%
+  arrange(desc(n), .by_group = TRUE) %>% 
+  filter(row_number()==1)
+
+cbind.data.frame(type.count, 
+                 matched.type = rep(table(type.count$seurat_clusters), x = similarity.table[similarity.table$datasetL == "human.NA",]$clusterR))
+
 
 ## -----------------------------------------------------------------------------
 # Retrieve the top 3 similar cluster for each of the clusters:
-similarity.table.3top <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=3)
+similarity.table.3top <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=3,
+                                             sampleNames = c("human","human.NA"), nSubsampling = 24)
 head(similarity.table.3top)
 
 ## -----------------------------------------------------------------------------
 # Retrieve the top 5 features that contribute the most to the similarity between each pair of clusters:
-similarity.table.5top.features <- clusterFoldSimilarity(sceList=singlecell.object.list, topNFeatures=5)
+similarity.table.5top.features <- clusterFoldSimilarity(sceList=singlecell.object.list, topNFeatures=5, nSubsampling = 24)
 head(similarity.table.5top.features, n=10)
 
 ## -----------------------------------------------------------------------------
-similarity.table.all.values <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=Inf)
+similarity.table.all.values <- clusterFoldSimilarity(sceList=singlecell.object.list, sampleNames = c("human","human.NA"), topN=Inf)
 dim(similarity.table.all.values)
 
 ## -----------------------------------------------------------------------------
 library(dplyr)
-dataset1 <- 1
-dataset2 <- 2
+dataset1 <- "human"
+dataset2 <- "human.NA"
 similarity.table.2 <- similarity.table.all.values %>% 
-                      filter(datasetL == dataset1 & datasetR == dataset2) %>% 
-                      arrange(desc(as.numeric(clusterL)), as.numeric(clusterR))
+filter(datasetL == dataset1 & datasetR == dataset2) %>% 
+arrange(desc(as.numeric(clusterL)), as.numeric(clusterR))
 cls <- unique(similarity.table.2$clusterL)
 cls2 <- unique(similarity.table.2$clusterR)
 similarity.matrix.all <- t(matrix(similarity.table.2$similarityValue, ncol=length(unique(similarity.table.2$clusterL))))
@@ -80,44 +92,68 @@ colnames(similarity.matrix.all) <- cls2
 similarity.matrix.all
 
 ## -----------------------------------------------------------------------------
-# The name of the label we want to use for annotation:
-cell.label.name <- "level1.class"
-# Visualize the label we are using as ground-truth:
-table(singlecell.object.list[[1]]@meta.data[, cell.label.name])
-# Set the group label in the Seurat object:
-Idents(singlecell.object.list[[1]]) <- cell.label.name
+# Mouse pancreatic single cell data
+pancreas_baron_mm <- scRNAseq::BaronPancreasData(which = "mouse",ensembl = FALSE)
+table(colData(pancreas_baron_mm)$label); dim(pancreas_baron_mm)
+colData(pancreas_baron_mm)$cell.type <- colData(pancreas_baron_mm)$label
+# Translate mouse gene ids to human ids
+mouse_to_human_genes <- function(gene_list){
+require(biomaRt)
+# Using archived versions of Ensembl data:
+human <- useMart("ensembl", dataset = "hsapiens_gene_ensembl", host = "https://dec2021.archive.ensembl.org/") 
+mouse <- useMart("ensembl", dataset = "mmusculus_gene_ensembl", host = "https://dec2021.archive.ensembl.org/")
+return(getLDS(
+  mart = mouse,
+  attributes = c('mgi_symbol'),
+  martL = human,
+  attributesL = c('hgnc_symbol'),
+  filters = 'mgi_symbol',
+  values = c(gene_list)))
+}
+gene_index <- mouse_to_human_genes(gene_list = rownames(pancreas_baron_mm))
+gene_index <- gene_index[!duplicated(gene_index$MGI.symbol),]
+rownames(gene_index) <- gene_index$MGI.symbol
+gene_index <- gene_index[rownames(gene_index) %in% rownames(pancreas_baron_mm),]
+pancreas_baron_mm <- pancreas_baron_mm[rownames(pancreas_baron_mm) %in% rownames(gene_index),]
+rownames(pancreas_baron_mm) <- gene_index[rownames(pancreas_baron_mm),]$HGNC.symbol
+# Create seurat object
+singlecell.3.seurat <- CreateSeuratObject(counts = counts(pancreas_baron_mm),meta.data = as.data.frame(colData(pancreas_baron_mm)))
 
-similarity.table.cell.labeling <- clusterFoldSimilarity(sceList=singlecell.object.list,
-                                                          sampleNames=c("labeled cells","new samples"),
-                                                          topN=1)
+# We append the single-cell object to our list
+singlecell.object.list[[3]] <- singlecell.3.seurat
+
 
 ## -----------------------------------------------------------------------------
-similarity.table.cell.labeling.all <- clusterFoldSimilarity(sceList=singlecell.object.list,
-                                                            topN=Inf,
-                                                            sampleNames=c("labeled cells", "new samples"))
+
+x <- singlecell.object.list[[3]]
+x <- NormalizeData(x)
+x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 2000)
+x <- ScaleData(x,features = VariableFeatures(x))
+x <- RunPCA(x, features = VariableFeatures(object = x))
+x <- FindNeighbors(x, dims = seq(16))
+x <- FindClusters(x, resolution = 0.4)
+singlecell.object.list[[3]] <- x
+
+# We use the cell labels as a second reference, but we can also use the cluster labels if our interest is to match clusters
+Idents(singlecell.object.list[[3]]) <- factor(singlecell.object.list[[3]]@meta.data$cell.type)
+
+# We subset the most variable genes in each experiment
+singlecell.object.list.variable <- lapply(singlecell.object.list, function(x){x[VariableFeatures(x),]})
+
+similarity.table.human.mouse <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
+                                                        sampleNames = c("human","human.NA","mouse"),
+                                                        topN = 1, 
+                                                        nSubsampling = 24,
+                                                        parallel = TRUE)
+
+## -----------------------------------------------------------------------------
+similarity.table.human.mouse.all <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
+                                                          sampleNames = c("human","human.NA","mouse"),
+                                                          topN = Inf, 
+                                                          nSubsampling = 24,
+                                                          parallel = TRUE)
 # We can select which dataset to plot in the Y-axis:
-ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.cell.labeling.all, mainDataset="new samples")
-
-## -----------------------------------------------------------------------------
-# Example with 3 datasets: we split the single-cell RNA-seq from Zeisel et. al. by tissue:
-singlecell.object.list.split <- Seurat::SplitObject(singlecell.2.seurat,split.by = "tissue")
-singlecell.object.list.split <- lapply(X = singlecell.object.list.split, FUN = function(x){
-  x <- NormalizeData(x)
-  x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 1000)
-  x <- ScaleData(x,features = VariableFeatures(x))
-  x <- RunPCA(x, features = VariableFeatures(object = x))
-  x <- FindNeighbors(x, dims = 1:10)
-  x <- FindClusters(x, resolution = 0.1)
-})
-
-singlecell.object.list.3.datasets <- c(singlecell.object.list[[1]], singlecell.object.list.split)
-similarity.table.3.datasets <- clusterFoldSimilarity(sceList=singlecell.object.list.3.datasets, 
-                                                     sampleNames=c("romanov", "zei.cortex", "zei.hippo"))
-
-## -----------------------------------------------------------------------------
-similarity.table.3.datasets <- clusterFoldSimilarity(sceList=singlecell.object.list.3.datasets,
-                                                     sampleNames = c("romanov","zei.cortex","zei.hippo"),
-                                                     topN = Inf)
+ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.human.mouse.all, mainDataset="human.NA")
 
 ## -----------------------------------------------------------------------------
 sessionInfo()
