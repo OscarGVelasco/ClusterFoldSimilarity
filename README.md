@@ -25,6 +25,8 @@ The output is a table that contains the similarity values for all the combinatio
 
 It can be easily integrated on any existing single-cell analysis pipeline, and it is compatible with the most used single-cell objects: `Seurat` and `SingleCellExperiment`.
 
+Parallel computing is available through the option parallel=TRUE which make use of BiocParallel.
+
 # Using ClusterFoldSimilarity to find similar clusters/cell-groups across datasets
 
 Typically, `ClusterFoldSimilarity` will receive as input either a list of two or more `Seurat` or `SingleCellExperiment` objects, **containing processed data**: filtered and clustered/grouped by a phenotypic variable of our choice.
@@ -78,7 +80,7 @@ Once we have all of our single-cell datasets analyzed independently, we can comp
 -   `topN`: the top n most similar clusters/groups to report for each cluster/group (default: `1`, the top most similar cluster). If set to `Inf` it will return the values from all the possible cluster-pairs.
 -   `topNFeatures`: the top *n* features (e.g.: genes) that contribute to the observed similarity between the pair of clusters (default: `1`, the top contributing gene). If a negative number, the tool will report the *n* most dissimilar features.
 -   `nSubsampling`: number of subsamplings (1/3 of cells on each iteration) at group level for calculating the fold-changes (default: `15`). At start, the tool will report a message with the recommended number of subsamplings for the given data (average n of subsamplings needed to observe all cells).
-
+-   `parallel`: whether to use parallel computing with multiple threads or not (default: `FALSE`).
 If we want to use a specific single-cell experiment for annotation (from which we know a ground-truth label, e.g. cell type, cell cycle, treatment... etc.), we can use that label to directly compare the single-cell datasets.
 
 Here we will use the annotated pancreas cell-type labels from the dataset 1 to illustrate how to match clusters to cell-types using a reference dataset:
@@ -205,7 +207,9 @@ singlecell.object.list[[3]] <- singlecell.3.seurat
 
 ```
 
-Now, we process the new single-cell dataset from mouse, and we calculate the similarity scores between the 3 independent datasets:
+Now, we process the new single-cell dataset from mouse, and we calculate the similarity scores between the 3 independent datasets.
+
+This time we will make use of the option parallel=TRUE:
 
 ```{r}
 
@@ -227,7 +231,8 @@ singlecell.object.list.variable <- lapply(singlecell.object.list, function(x){x[
 similarity.table.human.mouse <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
                                                         sampleNames = c("human","human.NA","mouse"),
                                                         topN = 1, 
-                                                        nSubsampling = 24)
+                                                        nSubsampling = 24,
+                                                        parallel = TRUE)
 ```
 
 We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in.
@@ -236,7 +241,8 @@ We can compute and visualize with a heatmap all the similarities for each cluste
 similarity.table.human.mouse.all <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
                                                           sampleNames = c("human","human.NA","mouse"),
                                                           topN = Inf, 
-                                                          nSubsampling = 24)
+                                                          nSubsampling = 24,
+                                                          parallel = TRUE)
 # We can select which dataset to plot in the Y-axis:
 ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.human.mouse.all, mainDataset="human.NA")
 ```
