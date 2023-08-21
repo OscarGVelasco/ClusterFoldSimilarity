@@ -33,21 +33,29 @@ library(ClusterFoldSimilarity)
 
 # Introduction
 
-Comparing single-cell data across different datasets, samples and batches has demonstrated to be challenging. `ClusterFoldSimilarity` aims to solve the complexity of comparing different single-cell datasets by calculating similarity scores between clusters (or user-defined groups) from any number of single-cell experiments, including different species. It does it by finding similar fold-change patterns across cell groups with a common set of features (e.g. genes). It also reports the top genes that contributed to the similarity value, acting as a feature selection tool.
+Comparing single-cell data across different datasets, samples and batches has demonstrated to be challenging. `ClusterFoldSimilarity` aims to solve the complexity of comparing different single-cell datasets by computing similarity scores between clusters (or user-defined groups) from any number of independent single-cell experiments, including different species and sequencing technologies. It accomplishes this by identifying analogous fold-change patterns across cell groups that share a common set of features (such as genes). Additionally, it selects and reports the top important features that have contributed to the observed similarity, serving as a tool for feature selection.
 
-The output is a table that contains the similarity values for each pair of clusters from all datasets. `ClusterFoldSimilarity` also includes various plotting utilities to enhance the interpretability of the similarity scores.
+The output is a table that contains the similarity values for all the combinations of cluster-pairs from the independent datasets. `ClusterFoldSimilarity` also includes various plotting utilities to enhance the interpretability of the similarity scores.
 
-### Cross-species analysis and sequencing technologies (e.g.: ATAC-Seq vs RNA-Seq)
+### Cross-species analysis and sequencing technologies (e.g.: Human vs Mouse, ATAC-Seq vs RNA-Seq)
 
-`ClusterFoldSimilarity` is able to compare **any number** of independent experiments, including **different organisms**, making it useful for matching cell populations across different organisms, and thus, useful for inter-species analysis. Additionally, it can be used with **single-cell RNA-Seq data, single-cell ATAC-Seq data**, or more broadly, with continuous numerical data that shows changes in feature abundance across a set of common features between different groups. It is compatible with the most used single-cell objects: `r Biocpkg("Seurat")` and `r Biocpkg("SingleCellExperiment")`.
+`ClusterFoldSimilarity` is able to compare **any number** of independent experiments, including **different organisms**, making it useful for matching cell populations across different organisms, and thus, useful for inter-species analysis. Additionally, it can be used with **single-cell RNA-Seq data, single-cell ATAC-Seq data**, or more broadly, with continuous numerical data that shows changes in feature abundance across a set of common features between different groups.
+
+### Compatibility
+
+It can be easily integrated on any existing single-cell analysis pipeline, and it is compatible with the most used single-cell objects: `Seurat` and `SingleCellExperiment`.
+
+Parallel computing is available through the option parallel=TRUE which make use of BiocParallel.
 
 # Using ClusterFoldSimilarity to find similar clusters/cell-groups across datasets
 
-Typically `ClusterFoldSimilarity` will receive as input either a list of two or more `r Biocpkg("Seurat")` or `r Biocpkg("SingleCellExperiment")` objects, containing processed data: e.g. filtered, normalized and clustered/grouped by a phenotypic variable. (*PLEASE NOTE: this package is intended to be used with high-end-analyzed data, the better the pre-analysis the better the results `ClusterFoldSimilarity` will obtain, this includes: normalizing and taking care of local technical noise effects, removing non-variant data or selecting the top variant features, removing 0 expression features, reasonable number of clusters, etc.*)
+# Using ClusterFoldSimilarity to find similar clusters/cell-groups across datasets
 
-`ClusterFoldSimilarity` will obtain the **raw data** from these objects ( `GetAssayData(assay, slot = "counts")` for `r Biocpkg("Seurat")` or `counts()` for `r Biocpkg("SingleCellExperiment")` ) and **cluster or label information** ( `Idents()` for `r Biocpkg("Seurat")` and `colLabels()` for `r Biocpkg("SingleCellExperiment")` ).
+Typically, `ClusterFoldSimilarity` will receive as input either a list of two or more `Seurat` or `SingleCellExperiment` objects, **containing processed data**: filtered and clustered/grouped by a phenotypic variable of our choice.
 
-For the purpose of this example, we will use the package scRNAseq that contains several single-cell datasets, including samples from human and mouse. Here, we use pancreatic single-cell datasets.
+`ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, slot = "counts")` in the case of `Seurat`, or `counts()` for `SingleCellExperiment` object), and **cluster or label information** (using `Idents()` function from `Seurat`, or `colLabels()` for `SingleCellExperiment` ).
+
+For the sake of illustration, we will employ the scRNAseq package, which contains numerous individual-cell datasets ready for download and encompassing samples from both human and mouse origins. In this example, we specifically utilize 2 human single-cell datasets obtained from the pancreas.
 
 ```{r construct }
 library(Seurat)
@@ -89,14 +97,15 @@ x <- FindClusters(x, resolution = 0.4)
 
 Once we have all of our single-cell datasets analyzed independently, we can compute the similarity values. `clusterFoldSimilarity()` takes as arguments:
 
--   `sceList`: a list of single-cell objects (mandatory) either of class Seurat or of class SingleCellExperiment.
--   `topN`: the top n most similar clusters to report from each pair of clusters (default: `1`, the top most similar cluster). If set to `Inf` it will return all the values from all the cluster-pairs.
--   `topNFeatures`: the top n features (e.g.: genes) that contributes to the similarity between the pair of clusters (default: `1`, the top contributing gene).
--   `nSubsampling`: number of subsamplings (1/3 of cells on each iteration) at group level for calculating the fold-changes.
-
+-   `sceList`: a list of single-cell objects (mandatory) either of class `Seurat` or of class `SingleCellExperiment`.
+-   `sampleNames`: vector with names for each of the datasets. If not set the datasets will be named in the given order as: *1, 2, ..., N*.
+-   `topN`: the top n most similar clusters/groups to report for each cluster/group (default: `1`, the top most similar cluster). If set to `Inf` it will return the values from all the possible cluster-pairs.
+-   `topNFeatures`: the top *n* features (e.g.: genes) that contribute to the observed similarity between the pair of clusters (default: `1`, the top contributing gene). If a negative number, the tool will report the *n* most dissimilar features.
+-   `nSubsampling`: number of subsamplings (1/3 of cells on each iteration) at group level for calculating the fold-changes (default: `15`). At start, the tool will report a message with the recommended number of subsamplings for the given data (average n of subsamplings needed to observe all cells).
+-   `parallel`: whether to use parallel computing with multiple threads or not (default: `FALSE`).
 If we want to use a specific single-cell experiment for annotation (from which we know a ground-truth label, e.g. cell type, cell cycle, treatment... etc.), we can use that label to directly compare the single-cell datasets.
 
-Here we will use the pancreas cell-type labels from the dataset 1 to ilustrate how to match clusters to cell-types using a reference dataset.
+Here we will use the annotated pancreas cell-type labels from the dataset 1 to illustrate how to match clusters to cell-types using a reference dataset:
 
 ```{r}
 # Assign cell-type annotated from the original study to the cell labels:
@@ -108,7 +117,7 @@ similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, sample
 head(similarity.table)
 ```
 
-By default, `clusterFoldSimilarity()` will plot a graph network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained, the arrows point in the direction of the similarity (datasetL:clusterL -\> datasetR:clusterR); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar.
+By default, `clusterFoldSimilarity()` will plot a graph network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained. The arrows point in the direction of the similarity (datasetL:clusterL -\> datasetR:clusterR); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar. The graph plot can also be obtained by using the function `plotClustersGraph()` from this package, using as input the similarity table.
 
 In this example, as we have information regarding cell-type labels, we can check how the cell types match by calculating the most abundant cell type on each of the similar clusters:
 
@@ -155,7 +164,7 @@ similarity.table.all.values <- clusterFoldSimilarity(sceList=singlecell.object.l
 dim(similarity.table.all.values)
 ```
 
-It can be convenient to create a matrix with all the similarity values from the comparison of two datasets:
+For downstream analysis of the similarities, it can be convenient to create a matrix with all the scores from the comparison of two datasets:
 
 ```{r}
 library(dplyr)
@@ -174,7 +183,7 @@ similarity.matrix.all
 
 # Using ClusterFoldSimilarity across species and numerous datasets:
 
-`ClusterFoldSimilarity` can compare **any number** of independent studies, including **different organisms**, making it useful for inter-species analysis. Also, it can be used on different sequencing data technologies: e.g.: compare single-cell **ATAC-Seq and RNA-seq**.
+`ClusterFoldSimilarity` can compare **any number** of independent studies, including **different organisms**, making it useful for inter-species analysis. Also, it can be used on different sequencing data technologies: e.g.: compare single-cell **ATAC-Seq VS RNA-seq**.
 
 In this example, we are going to add a pancreas single-cell dataset from **Mouse** to the 2 existing ones from **Human** that we have processed in the previous steps.
 
@@ -211,7 +220,9 @@ singlecell.object.list[[3]] <- singlecell.3.seurat
 
 ```
 
-Now, we process the new single-cell dataset from mouse, and we calculate the similarity scores between the 3 independent datasets:
+Now, we process the new single-cell dataset from mouse, and we calculate the similarity scores between the 3 independent datasets.
+
+This time we will make use of the option parallel=TRUE:
 
 ```{r}
 
@@ -230,17 +241,21 @@ Idents(singlecell.object.list[[3]]) <- factor(singlecell.object.list[[3]]@meta.d
 # We subset the most variable genes in each experiment
 singlecell.object.list.variable <- lapply(singlecell.object.list, function(x){x[VariableFeatures(x),]})
 
-similarity.table.human.mouse <- clusterFoldSimilarity(sceList=singlecell.object.list.variable,
-                                                        sampleNames=c("human","human.NA","mouse"),
-                                                        topN=1, nSubsampling = 24)
+similarity.table.human.mouse <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
+                                                        sampleNames = c("human","human.NA","mouse"),
+                                                        topN = 1, 
+                                                        nSubsampling = 24,
+                                                        parallel = TRUE)
 ```
 
-We can visualize all the similarities for each cluster to the annotated cell-groups:
+We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in.
 
 ```{r}
-similarity.table.human.mouse.all <- clusterFoldSimilarity(sceList=singlecell.object.list.variable,
-                                                          topN=Inf, nSubsampling = 24,
-                                                          sampleNames=c("human","human.NA","mouse"))
+similarity.table.human.mouse.all <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
+                                                          sampleNames = c("human","human.NA","mouse"),
+                                                          topN = Inf, 
+                                                          nSubsampling = 24,
+                                                          parallel = TRUE)
 # We can select which dataset to plot in the Y-axis:
 ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.human.mouse.all, mainDataset="human.NA")
 ```
