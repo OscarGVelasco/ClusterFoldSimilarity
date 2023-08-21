@@ -15,6 +15,7 @@
 #' if (requireNamespace("Seurat") & requireNamespace("SeuratObject")){
 #' library(ClusterFoldSimilarity)
 #' library(Seurat)
+#' library(SeuratObject)
 #' # data dimensions
 #' nfeatures <- 2000; ncells <- 400
 #' # single-cell 1

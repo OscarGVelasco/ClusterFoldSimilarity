@@ -25,6 +25,7 @@ is calculated using the dotproduct of every pairwise combination of Fold Changes
 if (requireNamespace("Seurat") & requireNamespace("SeuratObject")){
 library(ClusterFoldSimilarity)
 library(Seurat)
+library(SeuratObject)
 # data dimensions
 nfeatures <- 2000; ncells <- 400
 # single-cell 1
@@ -48,7 +49,7 @@ singlecell.object.list <- list(seu.1, seu.2)
 
 similarity.table <- clusterFoldSimilarity(sceList = singlecell.object.list, sampleNames = c("sc1","sc2"))
 head(similarity.table)
-plotClustersGraph(similarityTable=similarityTable)
+plotClustersGraph(similarityTable=similarity.table)
 }
 
 }
