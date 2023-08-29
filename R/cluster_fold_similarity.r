@@ -65,6 +65,7 @@
 #' @importFrom stats sd
 #' @importFrom utils head
 #' @importFrom BiocParallel bplapply
+#' @importFrom Matrix Matrix
 #' @export
 clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFeatures=1, nSubsampling=15, parallel=FALSE){
   if(is.null(sceList) | (length(sceList)<2)){
@@ -175,12 +176,12 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   message("Computing fold changes.")
   if(isSce){
     markersSceList <- functToApply(sceList, function(x){
-      pairwiseClusterFoldChange(x=as.matrix(SingleCellExperiment::counts(x)), clusters=SingleCellExperiment::colLabels(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts
+      pairwiseClusterFoldChange(countData=Matrix::Matrix(data=SingleCellExperiment::counts(x), sparse=TRUE), clusters=SingleCellExperiment::colLabels(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts
     })
   }
   if(isSeurat){
     markersSceList <- functToApply(sceList, function(x){
-      pairwiseClusterFoldChange(x=as.matrix(Seurat::GetAssayData(x, slot="counts")), clusters=Seurat::Idents(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts from Seurat object
+      pairwiseClusterFoldChange(countData=Matrix::Matrix(data=Seurat::GetAssayData(x, slot="counts"), sparse=TRUE), clusters=Seurat::Idents(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts from Seurat object
     })
   }
   ## Main loop - samples

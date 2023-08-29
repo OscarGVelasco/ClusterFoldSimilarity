@@ -17,7 +17,8 @@ Imports:
     BiocParallel,
     graphics, 
     stats, 
-    utils
+    utils,
+    Matrix
 Suggests: 
     knitr,
     rmarkdown,

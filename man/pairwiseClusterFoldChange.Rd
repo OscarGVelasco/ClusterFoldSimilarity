@@ -4,10 +4,10 @@
 \alias{pairwiseClusterFoldChange}
 \title{Calculate the gene mean expression Fold Change between all possible combinations of clusters.}
 \usage{
-pairwiseClusterFoldChange(x, clusters, nSubsampling, functToApply)
+pairwiseClusterFoldChange(countData, clusters, nSubsampling, functToApply)
 }
 \arguments{
-\item{x}{Dataframe. Normalized counts containint gene expression.}
+\item{countData}{Matrix. Normalized counts containint gene expression.}
 
 \item{clusters}{Factor. A vector of corresponding cluster for each sample of (x).}
 

@@ -8,7 +8,7 @@
 #'   Volume 34, Issue 23, December 2018, Pages 4054–4063, https://doi.org/10.1093/bioinformatics/bty471
 #' Please consider citing also Erhard et. al. paper when using ClusterFoldChange.
 #'
-#' @param x Dataframe. Normalized counts containint gene expression.
+#' @param countData Matrix. Normalized counts containint gene expression.
 #' @param clusters Factor. A vector of corresponding cluster for each sample of (x).
 #' @param nSubsampling Numeric. Number of random samplings of cells to achieve fold change stability.
 #' 
@@ -18,9 +18,10 @@
 #' @importFrom methods is
 #' @importFrom stats median optim pnorm quantile var
 #' @importFrom BiocParallel bplapply
+#' @importFrom Matrix rowMeans
 #' @keywords internal
-pairwiseClusterFoldChange <- function(x, clusters, nSubsampling, functToApply){
-  countData <- x
+pairwiseClusterFoldChange <- function(countData, clusters, nSubsampling, functToApply){
+  #countData <- countMatrix
   minNumFeatures <- 3
   cellPortion <- 1/3
   fcFunct <- function(x,y) "-"(log2(x),log2(y))
@@ -33,7 +34,7 @@ pairwiseClusterFoldChange <- function(x, clusters, nSubsampling, functToApply){
   listOfFolds <- functToApply(seq(1, nSubsampling), function(sampling){
     # listOfFolds <- lapply(seq(1, nSubsampling), function(sampling){
     i <- lapply(cellGroups,function(cells)sample(x=cells, size=max((length(cells)*cellPortion), 1)))
-    x <- vapply(i, function(i){ rowMeans(countData[,i,drop=FALSE])}, FUN.VALUE=double(nrow(countData)))
+    x <- vapply(i, function(i){ Matrix::rowMeans(countData[,i,drop=FALSE])}, FUN.VALUE=double(nrow(countData)))
     logFolds <- mapply(function(i, k){
         numerator <- x[,i]
         denominator <- x[,k]
