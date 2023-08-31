@@ -70,7 +70,7 @@ plotClustersGraph <- function(similarityTable=NULL){
   base::plot(g, vertex.label=igraph::V(g)$name, edge.arrow.size=.3, layout=l,
              vertex.color=scales::alpha(rep(clCodes, cl), alpha=0.8), edge.color="black",
              vertex.size=14, vertex.frame.color=NA, vertex.label.color="black", 
-             vertex.label.cex=0.6, vertex.label.dist=0, edge.curved=0.2);
-  legend('topleft', legend=paste0('Dataset ', unique(df$datasetL)),
-         fill=clCodes, xpd=TRUE, inset=c(-0.1, -0.1), cex=0.8)
+             vertex.label.cex=0.6, vertex.label.dist=0, edge.curved=0.2)
+  # legend('topleft', legend=paste0('Dataset ', unique(df$datasetL)),
+  #        fill=clCodes, xpd=TRUE, inset=c(-0.1, -0.1), cex=0.8)
 }

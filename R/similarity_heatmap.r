@@ -49,37 +49,37 @@
 similarityHeatmap <- function(similarityTable = NULL,
                                mainDataset=NULL,
                                otherDatasets=NULL){
-myTable <- similarityTable
-if(is.null(mainDataset)){
-  # If no dataset is specified, we pick the first label from the datasetL values.
-  mainDataset <- unique(myTable$datasetL)[1]
-}
-subMyTable <- myTable[myTable$datasetL %in% c(mainDataset),]
-if(!is.null(otherDatasets)){subMyTable <- subMyTable[subMyTable$datasetR %in% c(otherDatasets),]}
-# Order the rows by using factor levels:
-subMyTable$clusterL <- factor(subMyTable$clusterL, levels=unique(subMyTable$clusterL),ordered = TRUE)
-foundDataset <- unique(subMyTable$datasetR)
-labels_personaliz <- paste("Dataset",foundDataset)
-names(labels_personaliz) <- foundDataset
-ylabel <- paste("Dataset",mainDataset,"clusterL")
-
-g <- ggplot2::ggplot(subMyTable, ggplot2::aes(y=clusterL, x=clusterR, fill= similarityValue)) +
-  ggplot2::geom_tile() +
-  ggplot2::scale_fill_gradient2(low="#7855ba", # Dark Violet - Low
-                                mid="#ffffff", # White - Medium
-                                high="#8a0d00", # Dark red - High
-                                guide="colorbar",
-                                name="Similarity value") + 
-  {if(length(foundDataset)>1)ggplot2::facet_grid(~ datasetR, scales="free_x", space="free_x", 
-                                                 labeller=ggplot2::as_labeller(labels_personaliz))}+
-  {if(length(foundDataset)==1)ggplot2::xlab(paste(labels_personaliz, "clusterR"))}+
-  ggplot2::theme_minimal() +
-  ggplot2::ylab(ylabel) +
-  ggplot2::theme(
-    strip.text=ggplot2::element_text(face="bold", size=ggplot2::rel(0.8)),
-    strip.background=ggplot2::element_rect(fill="white", colour="black", size=0.6),
-    axis.title.x=ggplot2::element_text(),
-    axis.text.x=ggplot2::element_text(angle=45, vjust=1, hjust=1)
-  )
-return(g)
+  myTable <- similarityTable
+  if(is.null(mainDataset)){
+    # If no dataset is specified, we pick the first label from the datasetL values.
+    mainDataset <- unique(myTable$datasetL)[1]
+  }
+  subMyTable <- myTable[myTable$datasetL %in% c(mainDataset),]
+  if(!is.null(otherDatasets)){subMyTable <- subMyTable[subMyTable$datasetR %in% c(otherDatasets),]}
+  # Order the rows by using factor levels:
+  subMyTable$clusterL <- factor(subMyTable$clusterL, levels=unique(subMyTable$clusterL), ordered=TRUE)
+  foundDataset <- unique(subMyTable$datasetR)
+  labels_personaliz <- paste("Dataset",foundDataset)
+  names(labels_personaliz) <- foundDataset
+  ylabel <- paste("Dataset",mainDataset,"clusterL")
+  
+  g <- ggplot2::ggplot(subMyTable, ggplot2::aes(y=clusterL, x=clusterR, fill=similarityValue)) +
+    ggplot2::geom_tile() +
+    ggplot2::scale_fill_gradient2(low="#7855ba", # Dark Violet - Low
+                                  mid="#ffffff", # White - Medium
+                                  high="#8a0d00", # Dark red - High
+                                  guide="colorbar",
+                                  name="Similarity value") + 
+    {if(length(foundDataset)>1)ggplot2::facet_grid(~ datasetR, scales="free_x", space="free_x", 
+                                                   labeller=ggplot2::as_labeller(labels_personaliz))}+
+    {if(length(foundDataset)==1)ggplot2::xlab(paste(labels_personaliz, "clusterR"))}+
+    ggplot2::theme_minimal() +
+    ggplot2::ylab(ylabel) +
+    ggplot2::theme(
+      strip.text=ggplot2::element_text(face="bold", size=ggplot2::rel(0.8)),
+      strip.background=ggplot2::element_rect(fill="white", colour="black", size=0.6),
+      axis.title.x=ggplot2::element_text(),
+      axis.text.x=ggplot2::element_text(angle=45, vjust=1, hjust=1)
+    )
+  return(g)
 }

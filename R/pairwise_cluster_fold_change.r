@@ -21,7 +21,6 @@
 #' @importFrom Matrix rowMeans
 #' @keywords internal
 pairwiseClusterFoldChange <- function(countData, clusters, nSubsampling, functToApply){
-  #countData <- countMatrix
   minNumFeatures <- 3
   cellPortion <- 1/3
   fcFunct <- function(x,y) "-"(log2(x),log2(y))
@@ -32,7 +31,6 @@ pairwiseClusterFoldChange <- function(countData, clusters, nSubsampling, functTo
   j <- t(j[!(j[,1] == j[,2]),])[c(2, 1),]
   # Sub-sampling of cells - we will randomly select "nSubsampling" times the "cellPortion" of the cells and calculate the fold change mean
   listOfFolds <- functToApply(seq(1, nSubsampling), function(sampling){
-    # listOfFolds <- lapply(seq(1, nSubsampling), function(sampling){
     i <- lapply(cellGroups,function(cells)sample(x=cells, size=max((length(cells)*cellPortion), 1)))
     x <- vapply(i, function(i){ Matrix::rowMeans(countData[,i,drop=FALSE])}, FUN.VALUE=double(nrow(countData)))
     logFolds <- mapply(function(i, k){
@@ -51,9 +49,6 @@ pairwiseClusterFoldChange <- function(countData, clusters, nSubsampling, functTo
         varPri <- Inf
       }
       if (is.infinite(muPri) || is.infinite(varPri)) {
-        # pseudocount = 1 approach
-        # muPri <- mean(fcFunct(x[,i]+1, x[,k]+1))
-        # varPri <- var(fcFunct(x[,i]+1, x[,k]+1))
         muPri <- mean(fcFunct(pseudoCount(x[,i]), pseudoCount(x[,k])))
         varPri <- var(fcFunct(pseudoCount(x[,i]), pseudoCount(x[,k])))
       }
@@ -65,8 +60,6 @@ pairwiseClusterFoldChange <- function(countData, clusters, nSubsampling, functTo
   })
   # Calculate the element-wise mean of the sub-samplings of fold changes
   finalLogFolds <- Reduce(`+`, listOfFolds) / length(listOfFolds)
-  # Set the extremely small fold changes to 0
-  #finalLogFolds[finalLogFolds<0.1 & finalLogFolds>-0.1] <- 0
   finalLogFolds <- apply(finalLogFolds, 2,function(z)(z - median(z))) # Normalization by median
   colnames(finalLogFolds) <- paste("logFC", j[1,], j[2,], sep='.')
   n <- length(levels(clusters)) - 1

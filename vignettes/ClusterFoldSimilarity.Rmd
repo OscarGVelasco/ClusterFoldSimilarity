@@ -107,7 +107,7 @@ Here we will use the annotated pancreas cell-type labels from the dataset 1 to i
 
 ```{r}
 # Assign cell-type annotated from the original study to the cell labels:
-Idents(singlecell.object.list[[1]]) <- factor(singlecell.object.list[[1]]@meta.data$cell.type)
+Idents(singlecell.object.list[[1]]) <- factor(singlecell.object.list[[1]][[]][,"cell.type"])
 
 library(ClusterFoldSimilarity)
 similarity.table <- clusterFoldSimilarity(sceList=singlecell.object.list, sampleNames = c("human","human.NA"),
@@ -121,7 +121,7 @@ In this example, as we have information regarding cell-type labels, we can check
 
 ```{r}
 
-type.count <- singlecell.object.list[[2]]@meta.data %>% 
+type.count <- singlecell.object.list[[2]][[]] %>% 
   group_by(seurat_clusters) %>% 
   count(cell.type) %>%
   arrange(desc(n), .by_group = TRUE) %>% 
@@ -191,25 +191,8 @@ pancreas_baron_mm <- scRNAseq::BaronPancreasData(which = "mouse",ensembl = FALSE
 table(colData(pancreas_baron_mm)$label); dim(pancreas_baron_mm)
 colData(pancreas_baron_mm)$cell.type <- colData(pancreas_baron_mm)$label
 # Translate mouse gene ids to human ids
-mouse_to_human_genes <- function(gene_list){
-require(biomaRt)
-# Using archived versions of Ensembl data:
-human <- useMart("ensembl", dataset = "hsapiens_gene_ensembl", host = "https://dec2021.archive.ensembl.org/") 
-mouse <- useMart("ensembl", dataset = "mmusculus_gene_ensembl", host = "https://dec2021.archive.ensembl.org/")
-return(getLDS(
-  mart = mouse,
-  attributes = c('mgi_symbol'),
-  martL = human,
-  attributesL = c('hgnc_symbol'),
-  filters = 'mgi_symbol',
-  values = c(gene_list)))
-}
-gene_index <- mouse_to_human_genes(gene_list = rownames(pancreas_baron_mm))
-gene_index <- gene_index[!duplicated(gene_index$MGI.symbol),]
-rownames(gene_index) <- gene_index$MGI.symbol
-gene_index <- gene_index[rownames(gene_index) %in% rownames(pancreas_baron_mm),]
-pancreas_baron_mm <- pancreas_baron_mm[rownames(pancreas_baron_mm) %in% rownames(gene_index),]
-rownames(pancreas_baron_mm) <- gene_index[rownames(pancreas_baron_mm),]$HGNC.symbol
+# *for the sake of simplicity we are going to transform to uppercase all mouse gene names
+rownames(pancreas_baron_mm) <- toupper(rownames(pancreas_baron_mm))
 # Create seurat object
 singlecell.3.seurat <- CreateSeuratObject(counts = counts(pancreas_baron_mm),meta.data = as.data.frame(colData(pancreas_baron_mm)))
 
@@ -234,7 +217,7 @@ x <- FindClusters(x, resolution = 0.4)
 singlecell.object.list[[3]] <- x
 
 # We use the cell labels as a second reference, but we can also use the cluster labels if our interest is to match clusters
-Idents(singlecell.object.list[[3]]) <- factor(singlecell.object.list[[3]]@meta.data$cell.type)
+Idents(singlecell.object.list[[3]]) <- factor(singlecell.object.list[[3]][[]][,"cell.type"])
 
 # We subset the most variable genes in each experiment
 singlecell.object.list.variable <- lapply(singlecell.object.list, function(x){x[VariableFeatures(x),]})

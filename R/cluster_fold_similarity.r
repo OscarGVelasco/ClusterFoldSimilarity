@@ -91,10 +91,6 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
     if (!requireNamespace("SingleCellExperiment", quietly=TRUE)) {
       stop("Package \"SingleCellExperiment\" needed for this function to work. Please install it.",
            call.=FALSE)}
-    # if(("normcounts" %in% names(sceList[[1]]@assays)) == FALSE){
-    #   stop("\"normcounts\" not found on the SingleCellExperiment object assays. \nPlease, set the normalized counts matrix using SingleCellExperiment::normcounts(sce_object) <- normcounts ",
-    #        call.=FALSE)
-    # }
     isSeurat <- FALSE
     isSce <- TRUE
   }
@@ -103,7 +99,6 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   }
   functToApply <- base::lapply
   if(isTRUE(parallel)){
-    #BiocParallel::MulticoreParam(workers = 6)
     functToApply <- BiocParallel::bplapply
   }
   ## Final var names
@@ -122,7 +117,7 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   if(length(features) == 0){
     stop("No common features between datasets. Please, select a subset of common variable features among all datasets.")
   }
-  if(length(features) < 50){
+  if(length(features) < 10){
     warning("The number of common features among datasets is: ",length(features),". More than 50 common features among all datasets is recomended.")
   }
   ## Control filtered level factors using droplevels
@@ -152,27 +147,25 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
   ## Check for dataset names:
   if(is.null(sampleNames)){
     sampleNames <- seq(length(sceList))
-  }else{
-    if(!(length(sampleNames) == length(sceList))){
-      stop("Number of names given in sampleNames does not match the length of the single-cell experiment list.")
-    }
+  }else if(!(length(sampleNames) == length(sceList))){
+    stop("Number of names given in sampleNames does not match the length of the single-cell experiment list.")
   }
   ## Calculate cluster FoldChange pairwise values:
   markersSceList <- list()
-  message(paste("Using a common set of", length(features), "features."))
+  message("Using a common set of", length(features), "features.")
   # Testing the number of draws/subsamplings of cells needed to see *all cells*
   cellDraw <- function(n){
-    percentage = (1/3) * n
+    percentage <- (1/3) * n
     return(sum(rep(1, n+1) / seq(1, n+1)) * (n/percentage))
   }
   if(isSce){
-    nOfDraws <- unlist(sapply(1:length(sceList),function(i)sapply(c(table(SingleCellExperiment::colLabels(sceList[[i]]))),cellDraw)))
+    nOfDraws <- unlist(lapply(seq_len(length(sceList)),function(i)lapply(c(table(SingleCellExperiment::colLabels(sceList[[i]]))),cellDraw)))
   }
   if(isSeurat){
-    nOfDraws <- unlist(sapply(1:length(sceList),function(i)sapply(c(table(Seurat::Idents(sceList[[i]]))),cellDraw)))
+    nOfDraws <- unlist(lapply(seq_len(length(sceList)),function(i)lapply(c(table(Seurat::Idents(sceList[[i]]))),cellDraw)))
   }
   # We select as optimal the subsampling n percentile 85% across all cell groups
-  message(paste0("Using a cell subsampling of n=",nSubsampling," (recomended n=",round(quantile(nOfDraws, probs=0.85)),")"))
+  message("Using a cell subsampling of n=",nSubsampling," (recomended n=",round(quantile(nOfDraws, probs=0.85)),")")
   message("Computing fold changes.")
   if(isSce){
     markersSceList <- functToApply(sceList, function(x){
@@ -185,7 +178,7 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
     })
   }
   ## Main loop - samples
-  intermediateResults <- sapply(seq_len(length(markersSceList)),function(i){
+  intermediateResults <- lapply(seq_len(length(markersSceList)),function(i){
     ## Pick a sample in ascending order
     y <- markersSceList[[i]]
     intermediateResults <- functToApply(seq_along(y),function(j){ # Parallel computing if selected
@@ -220,7 +213,7 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
             nPositive <- 0
             nNegative <- sum(matColmean< (-0.2), na.rm=TRUE)
             nPositive <- sum(matColmean> (0.20), na.rm=TRUE)
-            sem <- round(sd(matColmean) / sqrt(nNegative + nPositive), digits=2)
+            sem <- round(sd(matColmean) / sqrt(nNegative + nPositive + 1), digits=2)
             ## Weight based on the number of concordant-discordant FCs:
             ## loosely based on cross-entropy
             weight <- round(log(max(abs(nPositive - nNegative), 1)), digits = 2) * sign(nPositive - nNegative) # max: Avoiding log 0
@@ -249,19 +242,16 @@ clusterFoldSimilarity <- function(sceList=NULL, sampleNames=NULL, topN=1, topNFe
     return(summaryResults)
     })
   }) # End main loop - sapply
-  #return(intermediateResults)
   if(is(intermediateResults[[1]], "list")){
     # We obtain a list of list containing the data.frame results
     summaryResults <- do.call("rbind",lapply(intermediateResults,function(x)do.call(rbind, x)))
   }else if(is(intermediateResults[[1]], "data.frame")){
     # Special case in which the number of cluster is the same on all datasets, we will get a data.frame
     summaryResults <- do.call("rbind",intermediateResults)
-  } else{
-    stop("Error at collapsing the results into a data.frame.")
   }
   if(is.infinite(topN)){
   message("\n Ploting heatmap using the similarity values of clusters (topN=Inf).")
-  print(similarityHeatmap(similarityTable=summaryResults))
+  show(similarityHeatmap(similarityTable=summaryResults))
   }else{
   message("\n Ploting graph using the similarity values of clusters.")
   plotClustersGraph(similarityTable=summaryResults)
