@@ -31,9 +31,9 @@ The function returns a DataFrame containing the best top similarities between al
 \tabular{ll}{
    \code{similarityValue} \tab The top similarity value calculated between datasetL:clusterL and datasetR. \cr
    \tab \cr
-   \code{sem} \tab Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes. \cr
+   \code{sem} \tab Standar Error of the Mean (SEM) of the scalar contribution coefficients computed for all features. \cr
    \tab \cr
-   \code{w} \tab Weight associated with the score value. \cr
+   \code{w} \tab Weight associated with the similarity score value. \cr
    \tab \cr
    \code{datasetL} \tab Dataset left, the dataset/sample which has been used to be compared.  \cr
    \tab \cr
@@ -44,6 +44,8 @@ The function returns a DataFrame containing the best top similarities between al
    \code{clusterR} \tab Cluster right, the cluster target from datasetR which is being compared with the clusterL from datasetL. \cr
    \tab \cr
    \code{topFeatureConserved} \tab The features (e.g.: genes, peaks...) that most contributed to the similarity between clusterL & clusterR. \cr
+   \tab \cr
+   \code{featureScore} \tab The similarity score contribution for the specific topFeatureConserved (e.g.: genes, peaks...). \cr
 }
 }
 \description{

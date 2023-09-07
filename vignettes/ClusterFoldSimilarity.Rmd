@@ -1,5 +1,5 @@
 ---
-title: "ClusterFoldSimilarity: comparing different single-cell experiments"
+title: "ClusterFoldSimilarity: comparing cell-groups from independent single-cell experiments"
 author: 
 - name: Óscar González-Velasco
   affiliation: Division of Applied Bioinformatics, German Cancer Research Center DKFZ 
@@ -229,7 +229,7 @@ similarity.table.human.mouse <- clusterFoldSimilarity(scList = singlecell.object
                                                         parallel = TRUE)
 ```
 
-We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in.
+We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in. The top 2 similarities are highlighted to help visualizing the best matching groups. We can turn-off the highlight using `highlightTop=FALSE`
 
 ```{r}
 similarity.table.human.mouse.all <- clusterFoldSimilarity(scList = singlecell.object.list.variable,
@@ -239,6 +239,9 @@ similarity.table.human.mouse.all <- clusterFoldSimilarity(scList = singlecell.ob
                                                           parallel = TRUE)
 # We can select which dataset to plot in the Y-axis:
 ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.human.mouse.all, mainDataset="human.NA")
+
+# Turn-off the highlighting:
+ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.human.mouse.all, mainDataset="human.NA", highlightTop=FALSE)
 ```
 
 # Similarity score calculation

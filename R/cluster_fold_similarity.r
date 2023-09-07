@@ -16,9 +16,9 @@
 #' \tabular{ll}{
 #'    \code{similarityValue} \tab The top similarity value calculated between datasetL:clusterL and datasetR. \cr
 #'    \tab \cr
-#'    \code{sem} \tab Standar Error of the Mean (SEM) of the mean of the values of the coeficient calculated for all genes. \cr
+#'    \code{sem} \tab Standar Error of the Mean (SEM) of the scalar contribution coefficients computed for all features. \cr
 #'    \tab \cr
-#'    \code{w} \tab Weight associated with the score value. \cr
+#'    \code{w} \tab Weight associated with the similarity score value. \cr
 #'    \tab \cr
 #'    \code{datasetL} \tab Dataset left, the dataset/sample which has been used to be compared.  \cr
 #'    \tab \cr
@@ -29,6 +29,8 @@
 #'    \code{clusterR} \tab Cluster right, the cluster target from datasetR which is being compared with the clusterL from datasetL. \cr
 #'    \tab \cr
 #'    \code{topFeatureConserved} \tab The features (e.g.: genes, peaks...) that most contributed to the similarity between clusterL & clusterR. \cr
+#'    \tab \cr
+#'    \code{featureScore} \tab The similarity score contribution for the specific topFeatureConserved (e.g.: genes, peaks...). \cr
 #' }
 #'
 #' @examples
@@ -110,7 +112,7 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
                                 datasetR=integer(),
                                 clusterR=integer(),
                                 topFeatureConserved=character(),
-                                geneScore=integer(),
+                                featureScore=integer(),
                                 stringsAsFactors=FALSE)
   ## Select common genes in all samples 
   features <- Reduce(intersect,lapply(scList,function(x){rownames(x)}))
@@ -195,7 +197,7 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
                               datasetR=integer(),
                               clusterR=integer(),
                               topFeatureConserved=character(),
-                              geneScore=integer(),
+                              featureScore=integer(),
                               stringsAsFactors=FALSE)
           for(clusterNTarget in seq_along(sceComparative)){
             ## The sample for comparing will be the sample_i+1
@@ -230,7 +232,7 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
                 sampleNames[sampleNTarget], ## datasetR
                 clusterNames[[sampleNTarget]][clusterNTarget], ## clusterR (right; target of comparison) -> clusterNTarget corresponding to the internal loop
                 gene, ## Top feature conserved
-                matColmean[gene]) ## Gene Score
+                matColmean[gene]) ## Feature Score
             }
           }
         if(is.infinite(topN)){
