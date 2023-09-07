@@ -7,7 +7,8 @@
 similarityHeatmap(
   similarityTable = NULL,
   mainDataset = NULL,
-  otherDatasets = NULL
+  otherDatasets = NULL,
+  highlightTop = TRUE
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ similarityHeatmap(
 \item{mainDataset}{Numeric. Specify the main dataset (y axis). It corresponds with the datasetL column from the similarityTable}
 
 \item{otherDatasets}{Numeric. Specify some specific dataset to be ploted along the mainDataset (x axis, default: all other datasets found on datasetR column from similarity_table).}
+
+\item{highlightTop}{Boolean. If the top 2 similarity values should be highlighted on the heatmap (default: TRUE)}
 }
 \value{
 The function returns a heatmap ggplot object.
@@ -55,7 +58,7 @@ singlecellObjectList <- list(seu1, seu2)
 # Using topN = Inf by default plots a heatmap using the similarity values: 
 similarityTableAll <- clusterFoldSimilarity(scList=singlecellObjectList, topN=Inf)
 # Using the dataset 2 as a reference on the Y-axis of the heatmap:
-similarityHeatmap(similarityTable=similarityTableAll, mainDataset=2)
+similarityHeatmap(similarityTable=similarityTableAll, mainDataset=2, highlightTop=FALSE)
 }
 
 }

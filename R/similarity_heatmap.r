@@ -65,10 +65,10 @@ similarityHeatmap <- function(similarityTable=NULL,
   ylabel <- paste("Dataset",mainDataset, "clusterL")
   # Extract the top 1 & 2 similarity values for heatmap highlighting
   if(isTRUE(highlightTop)){
-  hilightedMaxTiles <- unlist(lapply(split.data.frame(subMyTable, f=subMyTable$clusterL), function(similDf){
+  hilightedMaxTiles <- unlist(lapply(split(subMyTable, list(subMyTable$clusterL,subMyTable$datasetR)), function(similDf){
     rownames(similDf)[order(similDf$similarityValue, decreasing=TRUE)[1]]
     }))
-  hilightedSecondTiles <- unlist(lapply(split.data.frame(subMyTable, f=subMyTable$clusterL), function(similDf){
+  hilightedSecondTiles <- unlist(lapply(split(subMyTable, list(subMyTable$clusterL,subMyTable$datasetR)) , function(similDf){
     rownames(similDf)[order(similDf$similarityValue, decreasing=TRUE)[2]]
   }))
   }
@@ -95,7 +95,7 @@ similarityHeatmap <- function(similarityTable=NULL,
     ggplot2::ylab(ylabel) +
     ggplot2::theme(
       strip.text=ggplot2::element_text(face="bold", size=ggplot2::rel(0.8)),
-      strip.background=ggplot2::element_rect(fill="white", colour="black", size=0.6),
+      strip.background=ggplot2::element_rect(fill="white", colour="black", linewidth=0.6),
       axis.title.x=ggplot2::element_text(),
       axis.text.x=ggplot2::element_text(angle=45, vjust=1, hjust=1)
     )
