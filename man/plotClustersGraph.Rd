@@ -29,27 +29,27 @@ library(SeuratObject)
 # data dimensions
 nfeatures <- 2000; ncells <- 400
 # single-cell 1
-counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+counts <- matrix(rpois(n=nfeatures * ncells, lambda=10), nfeatures)
 rownames(counts) <- paste0("gene",seq(nfeatures))
 colnames(counts) <- paste0("cell",seq(ncells))
 colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3"),size = ncells,replace = TRUE),
                      row.names=paste0("cell",seq(ncells)))
-seu.1 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
-Idents(object = seu.1) <- "cluster"
+seu1 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+Idents(object = seu1) <- "cluster"
 # single-cell 2
-counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+counts <- matrix(rpois(n=nfeatures * ncells, lambda=10), nfeatures)
 rownames(counts) <- paste0("gene",seq(nfeatures))
 colnames(counts) <- paste0("cell",seq(ncells))
 colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3","Cluster4"),size = ncells,replace = TRUE),
                       row.names=paste0("cell",seq(ncells)))
-seu.2 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
-Idents(object = seu.2) <- "cluster"
+seu2 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+Idents(object = seu2) <- "cluster"
 # Create a list with the unprocessed single-cell datasets
-singlecell.object.list <- list(seu.1, seu.2)
+singlecellObjectList <- list(seu1, seu2)
 
-similarity.table <- clusterFoldSimilarity(sceList = singlecell.object.list, sampleNames = c("sc1","sc2"))
-head(similarity.table)
-plotClustersGraph(similarityTable=similarity.table)
+similarityTable <- clusterFoldSimilarity(scList = singlecellObjectList, sampleNames = c("sc1","sc2"))
+head(similarityTable)
+plotClustersGraph(similarityTable=similarityTable)
 }
 
 }

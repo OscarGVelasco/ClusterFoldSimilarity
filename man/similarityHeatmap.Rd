@@ -35,28 +35,27 @@ library(SeuratObject)
 # data dimensions
 nfeatures <- 2000; ncells <- 400
 # single-cell 1
-counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+counts <- matrix(rpois(n=nfeatures * ncells, lambda=10), nfeatures)
 rownames(counts) <- paste0("gene",seq(nfeatures))
 colnames(counts) <- paste0("cell",seq(ncells))
 colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3"),size = ncells,replace = TRUE),
                      row.names=paste0("cell",seq(ncells)))
-seu.1 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
-Idents(object = seu.1) <- "cluster"
+seu1 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+Idents(object = seu1) <- "cluster"
 # single-cell 2
-counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+counts <- matrix(rpois(n=nfeatures * ncells, lambda=10), nfeatures)
 rownames(counts) <- paste0("gene",seq(nfeatures))
 colnames(counts) <- paste0("cell",seq(ncells))
 colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3","Cluster4"),size = ncells,replace = TRUE),
                       row.names=paste0("cell",seq(ncells)))
-seu.2 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
-Idents(object = seu.2) <- "cluster"
+seu2 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+Idents(object = seu2) <- "cluster"
 # Create a list with the unprocessed single-cell datasets
-singlecell.object.list <- list(seu.1, seu.2)
-# singlecell.object.list consist of 2 or more single-cell objects
+singlecellObjectList <- list(seu1, seu2)
 # Using topN = Inf by default plots a heatmap using the similarity values: 
-similarity.table.all <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=Inf)
+similarityTableAll <- clusterFoldSimilarity(scList=singlecellObjectList, topN=Inf)
 # Using the dataset 2 as a reference on the Y-axis of the heatmap:
-similarityHeatmap(similarityTable=similarity.table.all, mainDataset=2)
+similarityHeatmap(similarityTable=similarityTableAll, mainDataset=2)
 }
 
 }

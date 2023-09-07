@@ -5,7 +5,7 @@
 \title{Calculate cluster similarity between clusters from different single cell samples.}
 \usage{
 clusterFoldSimilarity(
-  sceList = NULL,
+  scList = NULL,
   sampleNames = NULL,
   topN = 1,
   topNFeatures = 1,
@@ -14,9 +14,9 @@ clusterFoldSimilarity(
 )
 }
 \arguments{
-\item{sceList}{List. A list of Single Cell Experiments or Seurat objects. At least 2 are needed. The objects are expected to have cluster or label groups set as identity class.}
+\item{scList}{List. A list of Single Cell Experiments or Seurat objects. At least 2 are needed. The objects are expected to have cluster or label groups set as identity class.}
 
-\item{sampleNames}{Character Vector. Specify the sample names, if not a number corresponding with its position on (sceList).}
+\item{sampleNames}{Character Vector. Specify the sample names, if not a number corresponding with its position on (scList).}
 
 \item{topN}{Numeric. Specifies the number of target clusters with best similarity to report for each cluster comparison (default 1). If set to Inf, then all similarity values from all possible pairs of clusters are returned.}
 
@@ -61,26 +61,26 @@ library(SeuratObject)
 # data dimensions
 nfeatures <- 2000; ncells <- 400
 # single-cell 1
-counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+counts <- matrix(rpois(n=nfeatures * ncells, lambda=10), nfeatures)
 rownames(counts) <- paste0("gene",seq(nfeatures))
 colnames(counts) <- paste0("cell",seq(ncells))
 colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3"),size = ncells,replace = TRUE),
                      row.names=paste0("cell",seq(ncells)))
-seu.1 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
-Idents(object = seu.1) <- "cluster"
+seu1 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+Idents(object = seu1) <- "cluster"
 # single-cell 2
-counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+counts <- matrix(rpois(n=nfeatures * ncells, lambda=20), nfeatures)
 rownames(counts) <- paste0("gene",seq(nfeatures))
 colnames(counts) <- paste0("cell",seq(ncells))
 colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3","Cluster4"),size = ncells,replace = TRUE),
                       row.names=paste0("cell",seq(ncells)))
-seu.2 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
-Idents(object = seu.2) <- "cluster"
+seu2 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+Idents(object = seu2) <- "cluster"
 # Create a list with the unprocessed single-cell datasets
-singlecell.object.list <- list(seu.1, seu.2)
+singlecellObjectList <- list(seu1, seu2)
 
-similarity.table <- clusterFoldSimilarity(sceList = singlecell.object.list, sampleNames = c("sc1","sc2"))
-head(similarity.table)
+similarityTable <- clusterFoldSimilarity(scList=singlecellObjectList, sampleNames = c("sc1","sc2"))
+head(similarityTable)
 }
 
 }

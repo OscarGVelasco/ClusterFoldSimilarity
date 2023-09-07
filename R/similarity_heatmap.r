@@ -8,6 +8,7 @@
 #' @param similarityTable A DataFrame containing the similarities between all possible pairs of single cell samples obtained with \link[ClusterFoldSimilarity]{clusterFoldSimilarity} using the option n_top=Inf.
 #' @param mainDataset Numeric. Specify the main dataset (y axis). It corresponds with the datasetL column from the similarityTable
 #' @param otherDatasets Numeric. Specify some specific dataset to be ploted along the mainDataset (x axis, default: all other datasets found on datasetR column from similarity_table).
+#' @param highlightTop Boolean. If the top 2 similarity values should be highlighted on the heatmap (default: TRUE)
 #' 
 #' @return The function returns a heatmap ggplot object. 
 #' 
@@ -19,36 +20,36 @@
 #' # data dimensions
 #' nfeatures <- 2000; ncells <- 400
 #' # single-cell 1
-#' counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+#' counts <- matrix(rpois(n=nfeatures * ncells, lambda=10), nfeatures)
 #' rownames(counts) <- paste0("gene",seq(nfeatures))
 #' colnames(counts) <- paste0("cell",seq(ncells))
 #' colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3"),size = ncells,replace = TRUE),
 #'                      row.names=paste0("cell",seq(ncells)))
-#' seu.1 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
-#' Idents(object = seu.1) <- "cluster"
+#' seu1 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+#' Idents(object = seu1) <- "cluster"
 #' # single-cell 2
-#' counts <- matrix(runif(nfeatures * ncells, 1, 1e4), nfeatures)
+#' counts <- matrix(rpois(n=nfeatures * ncells, lambda=10), nfeatures)
 #' rownames(counts) <- paste0("gene",seq(nfeatures))
 #' colnames(counts) <- paste0("cell",seq(ncells))
 #' colData <- data.frame(cluster=sample(c("Cluster1","Cluster2","Cluster3","Cluster4"),size = ncells,replace = TRUE),
 #'                       row.names=paste0("cell",seq(ncells)))
-#' seu.2 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
-#' Idents(object = seu.2) <- "cluster"
+#' seu2 <- SeuratObject::CreateSeuratObject(counts = counts, meta.data = colData)
+#' Idents(object = seu2) <- "cluster"
 #' # Create a list with the unprocessed single-cell datasets
-#' singlecell.object.list <- list(seu.1, seu.2)
-#' # singlecell.object.list consist of 2 or more single-cell objects
+#' singlecellObjectList <- list(seu1, seu2)
 #' # Using topN = Inf by default plots a heatmap using the similarity values: 
-#' similarity.table.all <- clusterFoldSimilarity(sceList=singlecell.object.list, topN=Inf)
+#' similarityTableAll <- clusterFoldSimilarity(scList=singlecellObjectList, topN=Inf)
 #' # Using the dataset 2 as a reference on the Y-axis of the heatmap:
-#' similarityHeatmap(similarityTable=similarity.table.all, mainDataset=2)
+#' similarityHeatmap(similarityTable=similarityTableAll, mainDataset=2, highlightTop=FALSE)
 #' }
 #' 
 #' @author Oscar Gonzalez-Velasco
 #' @import ggplot2
 #' @export
-similarityHeatmap <- function(similarityTable = NULL,
-                               mainDataset=NULL,
-                               otherDatasets=NULL){
+similarityHeatmap <- function(similarityTable=NULL,
+                              mainDataset=NULL,
+                              otherDatasets=NULL,
+                              highlightTop=TRUE){
   myTable <- similarityTable
   if(is.null(mainDataset)){
     # If no dataset is specified, we pick the first label from the datasetL values.
@@ -59,12 +60,29 @@ similarityHeatmap <- function(similarityTable = NULL,
   # Order the rows by using factor levels:
   subMyTable$clusterL <- factor(subMyTable$clusterL, levels=unique(subMyTable$clusterL), ordered=TRUE)
   foundDataset <- unique(subMyTable$datasetR)
-  labels_personaliz <- paste("Dataset",foundDataset)
+  labels_personaliz <- paste("Dataset", foundDataset)
   names(labels_personaliz) <- foundDataset
-  ylabel <- paste("Dataset",mainDataset,"clusterL")
-  
+  ylabel <- paste("Dataset",mainDataset, "clusterL")
+  # Extract the top 1 & 2 similarity values for heatmap highlighting
+  if(isTRUE(highlightTop)){
+  hilightedMaxTiles <- unlist(lapply(split.data.frame(subMyTable, f=subMyTable$clusterL), function(similDf){
+    rownames(similDf)[order(similDf$similarityValue, decreasing=TRUE)[1]]
+    }))
+  hilightedSecondTiles <- unlist(lapply(split.data.frame(subMyTable, f=subMyTable$clusterL), function(similDf){
+    rownames(similDf)[order(similDf$similarityValue, decreasing=TRUE)[2]]
+  }))
+  }
+  if(isFALSE(highlightTop)){
+    hilightedMaxTiles <- NULL
+    hilightedSecondTiles <- NULL
+  }
+  # Build the plot
   g <- ggplot2::ggplot(subMyTable, ggplot2::aes(y=clusterL, x=clusterR, fill=similarityValue)) +
     ggplot2::geom_tile() +
+    ggplot2::geom_tile(data=subMyTable[hilightedSecondTiles,], ggplot2::aes(width=0.98, height=0.98), 
+                       fill=NA, color="#aa0d00", linewidth=1.2) +
+    ggplot2::geom_tile(data=subMyTable[hilightedMaxTiles,], ggplot2::aes(width=0.98, height=0.98),
+                       fill=NA, color="#5a0d00", linewidth=1.2) +
     ggplot2::scale_fill_gradient2(low="#7855ba", # Dark Violet - Low
                                   mid="#ffffff", # White - Medium
                                   high="#8a0d00", # Dark red - High

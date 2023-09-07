@@ -24,7 +24,7 @@ This function will perform fold change estimation from the mean feature´s expre
 Bayesian Estimation of FoldChanges and Pseudocounts adapted from:
 Florian Erhard, Estimating pseudocounts and fold changes for digital expression measurements, Bioinformatics, 
   Volume 34, Issue 23, December 2018, Pages 4054–4063, https://doi.org/10.1093/bioinformatics/bty471
-Please consider citing also Erhard et. al. paper when using ClusterFoldChange.
+Please consider citing also Erhard et. al. paper when using ClusterFoldSimilarity.
 }
 \author{
 Oscar Gonzalez-Velasco
