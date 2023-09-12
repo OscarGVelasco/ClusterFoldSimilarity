@@ -97,6 +97,17 @@ similarity.table <- clusterFoldSimilarity(sceList = singlecell.object.list,
 head(similarity.table)
 ```
 
+A data.frame with the results is returned containing:
+
+-   `similarityValue`: The top similarity value calculated between datasetL:clusterL and datasetR.
+-   `w`: Weight associated with the similarity score value.
+-   `datasetL`: Dataset left, the dataset/sample which has been used to be compared. 
+-   `clusterL`: Cluster left, the cluster source from datasetL which has been compared.
+-   `datasetR`: Dataset right, the dataset/sample used for comparison against datasetL.
+-   `clusterR`: Cluster right, the cluster target from datasetR which is being compared with the clusterL from datasetL.
+-   `topFeatureConserved`: The features (e.g.: genes, peaks...) that most contributed to the similarity between clusterL & clusterR.
+-   `featureScore`: The similarity score contribution for the specific topFeatureConserved (e.g.: genes, peaks...).
+
 By default, `clusterFoldSimilarity()` will plot a graph network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained. The arrows point in the direction of the similarity (datasetL:clusterL -\> datasetR:clusterR); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar. The graph plot can also be obtained by using the function `plotClustersGraph()` from this package, using as input the similarity table.
 
 In this example, as we have information regarding cell-type labels, we can check how the cell types match by calculating the most abundant cell type on each of the similar clusters:
