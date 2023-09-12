@@ -15,7 +15,7 @@ vignette: >
 
 ```{r options, include=FALSE, echo=FALSE}
 library(BiocStyle)
-knitr::opts_chunk$set(eval=TRUE,warning=FALSE, error=FALSE, message=FALSE)
+knitr::opts_chunk$set(eval=TRUE, warning=FALSE, error=FALSE, message=FALSE)
 ```
 
 # Installation
@@ -61,25 +61,38 @@ library(scRNAseq)
 library(dplyr)
 # Human pancreatic single cell data 1
 pancreasMuraro <- scRNAseq::MuraroPancreasData(ensembl=FALSE)
-table(colData(pancreasMuraro)$label); dim(pancreasMuraro)
 pancreasMuraro <- pancreasMuraro[,rownames(colData(pancreasMuraro)[!is.na(colData(pancreasMuraro)$label),])]
 colData(pancreasMuraro)$cell.type <- colData(pancreasMuraro)$label
 rownames(pancreasMuraro) <- unlist(lapply(strsplit(rownames(pancreasMuraro), split="__"), function(x)x[[1]]))
 singlecell1Seurat <- CreateSeuratObject(counts=counts(pancreasMuraro), meta.data=as.data.frame(colData(pancreasMuraro)))
+```
 
+```{r ,  echo=FALSE}
+knitr::kable(
+  table(colData(pancreasMuraro)$label),
+  caption = 'Cell-types on pancreas dataset from Muraro et al.', align = "c"
+)
+```
+
+```{r }
 # Human pancreatic single cell data 2
 pancreasBaron <- scRNAseq::BaronPancreasData(which="human", ensembl=FALSE)
-table(colData(pancreasBaron)$label); dim(pancreasBaron)
 colData(pancreasBaron)$cell.type <- colData(pancreasBaron)$label
 singlecell2Seurat <- CreateSeuratObject(counts=counts(pancreasBaron), meta.data=as.data.frame(colData(pancreasBaron)))
+```
 
+```{r ,  echo=FALSE}
+knitr::kable(
+  table(colData(pancreasBaron)$label),
+  caption = 'Cell-types on pancreas dataset from Baron et al.', align = "c"
+)
 ```
 
 As we want to perform clustering analysis for later comparison of these cluster groups using `ClusterFoldSimilarity`, we first need to normalize and identify variable features for each dataset independently.
 
 *Note: these steps should be done tailored to each independent dataset, here we apply the same parameters for the sake of simplicity:*
 
-```{r}
+```{r,  results='hide'}
 # Create a list with the unprocessed single-cell datasets
 singlecellObjectList <- list(singlecell1Seurat, singlecell2Seurat)
 # Apply the same processing to each dataset and return a list of single-cell analysis
@@ -104,7 +117,7 @@ Once we have all of our single-cell datasets analyzed independently, we can comp
 
 Here we will use the annotated pancreas cell-type labels from the dataset 1 to illustrate how to match clusters to cell-types using a reference dataset:
 
-```{r, out.width="1800px", out.height="360px" }
+```{r , fig.wide = TRUE}
 # Assign cell-type annotated from the original study to the cell labels:
 Idents(singlecellObjectList[[1]]) <- factor(singlecellObjectList[[1]][[]][, "cell.type"])
 
@@ -113,7 +126,13 @@ similarityTable <- clusterFoldSimilarity(scList=singlecellObjectList,
                                          sampleNames=c("human", "humanNA"),
                                          topN=1, 
                                          nSubsampling=24)
-head(similarityTable)
+
+```
+
+```{r ,  echo=FALSE}
+knitr::kable(
+  head(similarityTable), caption = 'A table of the first 10 rows of the similarity results.', align = "c", 
+  format = "html", table.attr = "style='width:70%;'") %>% kableExtra::kable_styling(font_size=10)
 ```
 
 By default, `clusterFoldSimilarity()` will plot a graph network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained. The arrows point in the direction of the similarity (datasetL:clusterL -\> datasetR:clusterR); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar. The graph plot can also be obtained by using the function `plotClustersGraph()` from this package, using as input the similarity table.
@@ -121,47 +140,68 @@ By default, `clusterFoldSimilarity()` will plot a graph network that visualizes 
 In this example, as we have information regarding cell-type labels, we can check how the cell types match by calculating the most abundant cell type on each of the similar clusters:
 
 ```{r}
-
 typeCount <- singlecellObjectList[[2]][[]] %>% 
   group_by(seurat_clusters) %>% 
   count(cell.type) %>%
   arrange(desc(n), .by_group = TRUE) %>% 
   filter(row_number()==1)
+```
 
-cbind.data.frame(typeCount, 
-                 matched.type=rep(table(typeCount$seurat_clusters), x=similarityTable[similarityTable$datasetL == "humanNA",]$clusterR))
-
+```{r ,  echo=FALSE}
+knitr::kable(
+  cbind.data.frame(typeCount, 
+                 matched.type=rep(table(typeCount$seurat_clusters), x=similarityTable[similarityTable$datasetL == "humanNA",]$clusterR)),
+  caption = 'Cell-type label matching on pancreas single-cell data.', align = "c"
+)
 ```
 
 ## Retrieving the top-n similarities
 
 If we suspect that clusters could be related with more than one cluster of other datasets, we can retrieve the top n similarities for each cluster:
 
-```{r, out.width="1800px", out.height="360px" }
+```{r, fig.wide = TRUE}
 # Retrieve the top 3 similar cluster for each of the clusters:
 similarityTable3Top <- clusterFoldSimilarity(scList=singlecellObjectList, 
                                              topN=3,
                                              sampleNames=c("human", "humanNA"), 
                                              nSubsampling=24)
-head(similarityTable3Top)
+```
+
+```{r , echo=FALSE}
+knitr::kable(
+  head(similarityTable3Top),
+  caption = 'Similarity results showing the top 3 most similar clusters.', align = "c", 
+  format = "html", table.attr = "style='width:70%;'") %>% kableExtra::kable_styling(font_size=10)
 ```
 
 ## Obtaining the top-n feature markers
 
 If we are interested on the features that contribute the most to the similarity, we can retrieve the top n features:
 
-```{r, out.width="1800px", out.height="360px" }
+```{r, fig.wide = TRUE}
 # Retrieve the top 5 features that contribute the most to the similarity between each pair of clusters:
-similarityTable5TopFeatures <- clusterFoldSimilarity(scList=singlecellObjectList, topNFeatures=5, nSubsampling=24)
-head(similarityTable5TopFeatures, n=10)
+similarityTable5TopFeatures <- clusterFoldSimilarity(scList=singlecellObjectList, 
+                                                     topNFeatures=5, 
+                                                     nSubsampling=24)
+```
+
+```{r ,  echo=FALSE}
+knitr::kable(
+  head(similarityTable5TopFeatures, n=10),
+  caption = 'Similarity results showing the top 5 features that most contributed to the similarity.', align = "c", 
+  format = "html", table.attr = "style='width:70%;'") %>% kableExtra::kable_styling(font_size=10)
 ```
 
 ## Retrieving all the similarity values and plotting a similarity heatmap
 
-Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one cluster that is similar to a cluster of interest, finding the most dissimilar clusters, etc). To obtain all the values, we need to specify `topN=Inf`:
+Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one cluster that is similar to a cluster of interest, finding the most dissimilar clusters, etc). To obtain all the values, we need to specify `topN=Inf`.
 
-```{r, out.width="1800px", out.height="360px" }
-similarityTableAllValues <- clusterFoldSimilarity(scList=singlecellObjectList, sampleNames = c("human", "humanNA"), topN=Inf)
+By default, `clusterFoldSimilarity` creates a heatmap plot with the computed similarity values (from the perspective of the first dataset found on `scList`; to modify this plot see the following section). The top 2 similarities for each group within dataset 1 (heatmap row-wise) are highlighted with colored borders.
+
+```{r , fig.wide = TRUE,  out.height="400px" }
+similarityTableAllValues <- clusterFoldSimilarity(scList=singlecellObjectList, 
+                                                  sampleNames=c("human", "humanNA"), 
+                                                  topN=Inf)
 dim(similarityTableAllValues)
 ```
 
@@ -179,7 +219,13 @@ cls2 <- unique(similarityTable2$clusterR)
 similarityMatrixAll <- t(matrix(similarityTable2$similarityValue, ncol=length(unique(similarityTable2$clusterL))))
 rownames(similarityMatrixAll) <- cls
 colnames(similarityMatrixAll) <- cls2
-similarityMatrixAll
+```
+
+```{r, echo=FALSE}
+knitr::kable(
+  similarityMatrixAll,
+  caption = 'A 2 datasets Similarity matrix.', digits = 2, align = "c", 
+  format = "html", table.attr = "style='width:60%;'") %>% kableExtra::kable_styling(font_size=8)
 ```
 
 # Using ClusterFoldSimilarity across species and numerous datasets:
@@ -191,7 +237,16 @@ In this example, we are going to add a pancreas single-cell dataset from **Mouse
 ```{r}
 # Mouse pancreatic single cell data
 pancreasBaronMM <- scRNAseq::BaronPancreasData(which="mouse", ensembl=FALSE)
-table(colData(pancreasBaronMM)$label); dim(pancreasBaronMM)
+```
+
+```{r ,  echo=FALSE}
+knitr::kable(
+  table(colData(pancreasBaronMM)$label),
+  caption = 'Cell-types on pancreas dataset from Baron et al.', align = "c"
+)
+```
+
+```{r }
 colData(pancreasBaronMM)$cell.type <- colData(pancreasBaronMM)$label
 # Translate mouse gene ids to human ids
 # *for the sake of simplicity we are going to transform to uppercase all mouse gene names
@@ -201,14 +256,11 @@ singlecell3Seurat <- CreateSeuratObject(counts=counts(pancreasBaronMM), meta.dat
 
 # We append the single-cell object to our list
 singlecellObjectList[[3]] <- singlecell3Seurat
-
 ```
 
 Now, we process the new single-cell dataset from mouse, and we calculate the similarity scores between the 3 independent datasets.
 
-This time we will make use of the option parallel=TRUE:
-
-```{r, out.width="1800px", out.height="360px" }
+```{r,  results='hide'}
 scObject <- singlecellObjectList[[3]]
 scObject <- NormalizeData(scObject)
 scObject <- FindVariableFeatures(scObject, selection.method="vst", nfeatures=2000)
@@ -217,12 +269,19 @@ scObject <- RunPCA(scObject, features=VariableFeatures(object=scObject))
 scObject <- FindNeighbors(scObject, dims=seq(16))
 scObject <- FindClusters(scObject, resolution=0.4)
 singlecellObjectList[[3]] <- scObject
+```
 
+This time we will make use of the option parallel=TRUE. We can set the specific number of CPUs to use using `BiocParallel::register()` 
+
+```{r, fig.wide = TRUE}
 # We use the cell labels as a second reference, but we can also use the cluster labels if our interest is to match clusters
 Idents(singlecellObjectList[[3]]) <- factor(singlecellObjectList[[3]][[]][,"cell.type"])
 
 # We subset the most variable genes in each experiment
 singlecellObjectListVariable <- lapply(singlecellObjectList, function(x){x[VariableFeatures(x),]})
+
+# Setting the number of CPUs with BiocParallel:
+BiocParallel::register(BPPARAM =  BiocParallel::MulticoreParam(workers = 6))
 
 similarityTableHumanMouse <- clusterFoldSimilarity(scList=singlecellObjectListVariable,
                                                         sampleNames=c("human", "humanNA", "mouse"),
@@ -231,17 +290,25 @@ similarityTableHumanMouse <- clusterFoldSimilarity(scList=singlecellObjectListVa
                                                         parallel=TRUE)
 ```
 
-We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in. The top 2 similarities are highlighted to help visualizing the best matching groups. We can turn-off the highlight using `highlightTop=FALSE`
+We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in. The top 2 similarities are highlighted to help visualizing the best matching groups.
 
-```{r, out.width="1800px", out.height="360px" }
+```{r , fig.wide = TRUE,  out.height="400px" }
 similarityTableHumanMouseAll <- clusterFoldSimilarity(scList=singlecellObjectListVariable,
                                                           sampleNames=c("human", "humanNA", "mouse"),
                                                           topN=Inf,
                                                           nSubsampling=24,
                                                           parallel=TRUE)
-# We can select which dataset to plot in the Y-axis:
-ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarityTableHumanMouseAll, mainDataset="humanNA")
+```
 
+As the similarity values might not be symmetric (e.g. a cluster A from D1 showing the top similarity to B from D2, might not be the top similar cluster to B from D2), we can select which dataset to plot in the Y-axis:
+
+```{r , fig.wide = TRUE,  out.height="400px" }
+ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarityTableHumanMouseAll, mainDataset="humanNA")
+```
+
+Additionally, we can turn-off the highlight using `highlightTop=FALSE`
+
+```{r , fig.wide = TRUE,  out.height="400px" }
 # Turn-off the highlighting:
 ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarityTableHumanMouseAll, mainDataset="humanNA", highlightTop=FALSE)
 ```

@@ -16,8 +16,6 @@
 #' \tabular{ll}{
 #'    \code{similarityValue} \tab The top similarity value calculated between datasetL:clusterL and datasetR. \cr
 #'    \tab \cr
-#'    \code{sem} \tab Standar Error of the Mean (SEM) of the scalar contribution coefficients computed for all features. \cr
-#'    \tab \cr
 #'    \code{w} \tab Weight associated with the similarity score value. \cr
 #'    \tab \cr
 #'    \code{datasetL} \tab Dataset left, the dataset/sample which has been used to be compared.  \cr
@@ -105,7 +103,6 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
   }
   ## Final var names
   summaryResults <- data.frame(similarityValue=integer(),
-                                sem=integer(),
                                 w=integer(),
                                 datasetL=integer(), 
                                 clusterL=integer(),
@@ -122,27 +119,6 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
   if(length(features) < 10){
     warning("The number of common features among datasets is: ",length(features),". More than 50 common features among all datasets is recomended.")
   }
-  # ## Control filtered level factors using droplevels
-  # for (nScObject in length(scList)){
-  #   if(isSce){
-  #     if(is.null(SingleCellExperiment::colLabels(scList[[nScObject]]))){
-  #       stop("No clusters specified on colLabels on sample ",nScObject)
-  #     }
-  #     if(is.factor(SingleCellExperiment::colLabels(scList[[nScObject]]))){
-  #       SingleCellExperiment::colLabels(scList[[nScObject]]) <- droplevels(SingleCellExperiment::colLabels(scList[[nScObject]]))
-  #     }else{
-  #       SingleCellExperiment::colLabels(scList[[nScObject]]) <- factor(SingleCellExperiment::colLabels(scList[[nScObject]]))
-  #     }
-  #     }
-  #   if(isSeurat){
-  #     if(is.factor(Seurat::Idents(scList[[nScObject]]))){
-  #       Seurat::Idents(scList[[nScObject]]) <- droplevels(Seurat::Idents(scList[[nScObject]]))
-  #     }else{
-  #       Seurat::Idents(scList[[nScObject]]) <- factor(Seurat::Idents(scList[[nScObject]]))
-  #     }
-  #     }
-  # }
-  ###### test
   scList <- lapply(seq(scList), function(nScObject){
     if(isSce){
       if(is.null(SingleCellExperiment::colLabels(scList[[nScObject]]))){
@@ -169,14 +145,9 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
     return(list(countData, groups, clusterNames))
   })
   clusterNames <- lapply(scList, function(scObject)scObject[[3]])
-  ###### test
-  
-  spaces <- "                  " ## Empty spaces to clear the append of message report
-  ## Save the cluster name identification given by the user
-  # if(isSce){clusterNames <- lapply(scList,function(x)levels(SingleCellExperiment::colLabels(x)))}
-  # if(isSeurat){clusterNames <- lapply(scList,function(x)levels(Seurat::Idents(x)))}
-  
-  ## Check for dataset names:
+  ## Empty spaces to clear the append of message report
+  spaces <- "                  "
+  ## Check for dataset names given by the user:
   if(is.null(sampleNames)){
     sampleNames <- seq(length(scList))
   }else if(!(length(sampleNames) == length(scList))){
@@ -190,39 +161,16 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
     percentage <- (1/3) * n
     return(sum(rep(1, n+1) / seq(1, n+1)) * (n/percentage))
   }
-  
   #
   nOfDraws <- unlist(lapply(scList, function(scObject)lapply(c(table(scObject[[2]])), cellDraw)))
-  #
-  
-  # if(isSce){
-  #   nOfDraws <- unlist(lapply(seq_len(length(scList)),function(i)lapply(c(table(SingleCellExperiment::colLabels(scList[[i]]))), cellDraw)))
-  # }
-  # if(isSeurat){
-  #   nOfDraws <- unlist(lapply(seq_len(length(scList)),function(i)lapply(c(table(Seurat::Idents(scList[[i]]))), cellDraw)))
-  # }
   # We select as optimal the subsampling n percentile 85% across all cell groups
   message("Using a cell subsampling of n=", nSubsampling, " (recomended n=", round(quantile(nOfDraws, probs=0.85)), ")")
   message("Computing fold changes.")
-  # if(isSce){
-  #   markerScList <- functToApply(scList, function(x){
-  #     pairwiseClusterFoldChange(countData=Matrix::Matrix(data=SingleCellExperiment::counts(x), sparse=TRUE), clusters=SingleCellExperiment::colLabels(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts
-  #   })
-  # }
-  # if(isSeurat){
-  #   markerScList <- functToApply(scList, function(x){
-  #     pairwiseClusterFoldChange(countData=Matrix::Matrix(data=Seurat::GetAssayData(x, slot="counts"), sparse=TRUE), clusters=Seurat::Idents(x), nSubsampling=nSubsampling, functToApply=functToApply) # Raw counts from Seurat object
-  #   })
-  # }
-
-  # #
   markerScList <- functToApply(scList, function(scObject){
     pairwiseClusterFoldChange(countData=scObject[[1]], clusters=scObject[[2]], nSubsampling=nSubsampling, functToApply=functToApply)
   })
   # Remove list of single-cell object no longer needed:
   rm(scList)
-  # #
-  
   ## Main loop - samples
   intermediateResults <- lapply(seq_len(length(markerScList)), function(sampleN){
     ## Pick a sample in ascending order
@@ -234,7 +182,6 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
         if(sampleNTarget == sampleN)next() # If root and target samples are the same, we go for the next sample and skip this loop
         sceComparative <- markerScList[[sampleNTarget]]
         results <- data.frame(similarityValue=integer(),
-                              sem=integer(),
                               w=integer(),
                               datasetL=integer(), 
                               clusterL=integer(),
@@ -260,7 +207,6 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
             nPositive <- 0
             nNegative <- sum(matColmean< (-0.2), na.rm=TRUE)
             nPositive <- sum(matColmean> (0.20), na.rm=TRUE)
-            sem <- round(sd(matColmean) / sqrt(nNegative + nPositive + 1), digits=2)
             ## Weight based on the number of concordant-discordant FCs:
             ## loosely based on cross-entropy
             weight <- round(log(max(abs(nPositive - nNegative), 1)), digits = 2) * sign(nPositive - nNegative) # max: Avoiding log 0
@@ -269,7 +215,6 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
             for (gene in topGenes){
               results[nrow(results) + 1,] <- list(
                 similarity_weighted, ## similarityValue
-                sem, ## Standar Error of the Mean
                 weight, ## Weight of the score
                 sampleNames[sampleN], ## datasetL
                 clusterNames[[sampleN]][clusterN], ## clusterL (left; source of comparison) -> clusterN corresponding to the loop

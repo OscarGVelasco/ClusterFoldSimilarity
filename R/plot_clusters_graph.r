@@ -66,11 +66,11 @@ plotClustersGraph <- function(similarityTable=NULL){
   clusterColorsPalete <- c("#FDD49E", "#D5BADB", "#7EB6D9", "#DBECDA", "#F28D35", "#4AA147", "#86608E",
                           "#3C7DA6", "#DE77AE", "#D9E8F5", "#92C791", "#D94D1A", "#F2D377")
   clCodes <- clusterColorsPalete[seq(length(setNames))]
-  par(mar=c(1, 5, 5, 1));
+  par(mar=c(1, 1, 1, 1));
   base::plot(g, vertex.label=igraph::V(g)$name, edge.arrow.size=.3, layout=l,
              vertex.color=scales::alpha(rep(clCodes, cl), alpha=0.8), edge.color="black",
-             vertex.size=14, vertex.frame.color=NA, vertex.label.color="black", 
-             vertex.label.cex=0.6, vertex.label.dist=0, edge.curved=0.2)
-  # legend('topleft', legend=paste0('Dataset ', unique(df$datasetL)),
-  #        fill=clCodes, xpd=TRUE, inset=c(-0.1, -0.1), cex=0.8)
+             vertex.size=18, vertex.frame.color=NA, vertex.label.color="black", 
+             vertex.label.cex=0.9, vertex.label.dist=0, edge.curved=0.2)
+  legend('topleft', horiz=TRUE, y.intersp=0.5, x.intersp=0.5, legend=paste0('Dataset ', unique(df$datasetL)),
+         fill=clCodes, xpd=TRUE, inset=c(0, 0), cex=0.8)
 }

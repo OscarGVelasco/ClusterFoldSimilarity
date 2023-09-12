@@ -29,9 +29,9 @@ Parallel computing is available through the option parallel=TRUE which make use 
 
 # Using ClusterFoldSimilarity to find similar clusters/cell-groups across datasets
 
-Typically, `ClusterFoldSimilarity` will receive as input either a list of two or more `Seurat` or `SingleCellExperiment` objects, **containing processed data**: filtered and clustered/grouped by a phenotypic variable of our choice.
+Typically, `ClusterFoldSimilarity` will receive as input either a list of two or more `Seurat` or `SingleCellExperiment` objects.
 
-`ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, slot = "counts")` in the case of `Seurat`, or `counts()` for `SingleCellExperiment` object), and **cluster or label information** (using `Idents()` function from `Seurat`, or `colLabels()` for `SingleCellExperiment` ).
+`ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, slot = "counts")` in the case of `Seurat`, or `counts()` for `SingleCellExperiment` object), and **group or cluster label information** (using `Idents()` function from `Seurat`, or `colLabels()` for `SingleCellExperiment` ).
 
 For the sake of illustration, we will employ the scRNAseq package, which contains numerous individual-cell datasets ready for download and encompassing samples from both human and mouse origins. In this example, we specifically utilize 2 human single-cell datasets obtained from the pancreas.
 
@@ -55,7 +55,7 @@ singlecell.2.seurat <- Seurat::CreateSeuratObject(counts = counts(pancreas_baron
 
 ```
 
-Normalize and identify variable features for each dataset independently
+As we want to perform clustering analysis for later comparison of these cluster groups using `ClusterFoldSimilarity`, we first need to normalize and identify variable features for each dataset independently.
 
 *Note: these steps should be done tailored to each independent dataset, here we apply the same parameters for the sake of simplicity:*
 
@@ -75,13 +75,12 @@ x <- FindClusters(x, resolution = 0.4)
 
 Once we have all of our single-cell datasets analyzed independently, we can compute the similarity values. `clusterFoldSimilarity()` takes as arguments:
 
--   `sceList`: a list of single-cell objects (mandatory) either of class `Seurat` or of class `SingleCellExperiment`.
+-   `scList`: a list of single-cell objects (mandatory) either of class `Seurat` or of class `SingleCellExperiment`.
 -   `sampleNames`: vector with names for each of the datasets. If not set the datasets will be named in the given order as: *1, 2, ..., N*.
 -   `topN`: the top n most similar clusters/groups to report for each cluster/group (default: `1`, the top most similar cluster). If set to `Inf` it will return the values from all the possible cluster-pairs.
 -   `topNFeatures`: the top *n* features (e.g.: genes) that contribute to the observed similarity between the pair of clusters (default: `1`, the top contributing gene). If a negative number, the tool will report the *n* most dissimilar features.
 -   `nSubsampling`: number of subsamplings (1/3 of cells on each iteration) at group level for calculating the fold-changes (default: `15`). At start, the tool will report a message with the recommended number of subsamplings for the given data (average n of subsamplings needed to observe all cells).
--   `parallel`: whether to use parallel computing with multiple threads or not (default: `FALSE`).
-If we want to use a specific single-cell experiment for annotation (from which we know a ground-truth label, e.g. cell type, cell cycle, treatment... etc.), we can use that label to directly compare the single-cell datasets.
+-   `parallel`: whether to use parallel computing with multiple threads or not (default: `FALSE`). If we want to use a specific single-cell experiment for annotation (from which we know a ground-truth label, e.g. cell type, cell cycle, treatment... etc.), we can use that label to directly compare the single-cell datasets.
 
 Here we will use the annotated pancreas cell-type labels from the dataset 1 to illustrate how to match clusters to cell-types using a reference dataset:
 
@@ -117,7 +116,7 @@ cbind.data.frame(type.count,
 
 ## Retrieving the top-n similarities
 
-If we suspect that clusters/groups could be related with more than one cluster/groups of other datasets, we can retrieve the top n similarities:
+If we suspect that clusters could be related with more than one cluster of other datasets, we can retrieve the top n similarities for each cluster:
 
 ```{r}
 # Retrieve the top 3 similar cluster for each of the clusters:
@@ -142,7 +141,9 @@ head(similarity.table.5top.features, n=10)
 
 ## Retrieving all the similarity values and plotting a similarity heatmap
 
-Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one group of cells that are similar to a group of interest, identify the mixture of cell-types of a specific cluster, finding the most dissimilar clusters, etc). To obtain all the similarity scores, we need to specify `topN=Inf`:
+Sometimes it is useful to retrieve all the similarity values for downstream analysis (e.g. identify more than one cluster that is similar to a cluster of interest, finding the most dissimilar clusters, etc). To obtain all the values, we need to specify `topN=Inf`.
+
+By default, `clusterFoldSimilarity` creates a heatmap plot with the computed similarity values (from the perspective of the first dataset found on `scList`; to modify this plot see the following section). The top 2 similarities for each group within dataset 1 (heatmap row-wise) are highlighted with colored borders.
 
 ```{r}
 similarity.table.all.values <- clusterFoldSimilarity(sceList = singlecell.object.list, 
@@ -192,7 +193,7 @@ singlecell.object.list[[3]] <- singlecell.3.seurat
 
 Now, we process the new single-cell dataset from mouse, and we calculate the similarity scores between the 3 independent datasets.
 
-This time we will make use of the option parallel=TRUE:
+This time we will make use of the option parallel=TRUE. We can set the specific number of CPUs to use using `BiocParallel::register()`
 
 ```{r}
 
@@ -211,6 +212,9 @@ Idents(singlecell.object.list[[3]]) <- factor(singlecell.object.list[[3]][[]][,"
 # We subset the most variable genes in each experiment
 singlecell.object.list.variable <- lapply(singlecell.object.list, function(x){x[VariableFeatures(x),]})
 
+# Setting the number of CPUs with BiocParallel:
+BiocParallel::register(BPPARAM =  BiocParallel::MulticoreParam(workers = 6))
+
 similarity.table.human.mouse <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
                                                         sampleNames = c("human","human.NA","mouse"),
                                                         topN = 1, 
@@ -218,7 +222,7 @@ similarity.table.human.mouse <- clusterFoldSimilarity(sceList = singlecell.objec
                                                         parallel = TRUE)
 ```
 
-We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in.
+We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in. The top 2 similarities are highlighted to help visualizing the best matching groups.
 
 ```{r}
 similarity.table.human.mouse.all <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
@@ -226,24 +230,24 @@ similarity.table.human.mouse.all <- clusterFoldSimilarity(sceList = singlecell.o
                                                           topN = Inf, 
                                                           nSubsampling = 24,
                                                           parallel = TRUE)
-# We can select which dataset to plot in the Y-axis:
-ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.human.mouse.all, mainDataset="human.NA")
+```
+
+As the similarity values might not be symmetric (e.g. a cluster A from D1 showing the top similarity to B from D2, might not be the top similar cluster to B from D2), we can select which dataset to plot in the Y-axis:
+
+```{r}
+ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarity.table.human.mouse.all, 
+                                          mainDataset="human.NA")
+```
+
+Additionally, we can turn-off the highlight using `highlightTop=FALSE`
+
+```{r}
+# Turn-off the highlighting:
+ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarityTableHumanMouseAll, 
+                                          mainDataset="humanNA",
+                                          highlightTop=FALSE)
 ```
 
 # Similarity score calculation
 
 `ClusterFoldSimilarity` does not need to integrate the data, or apply any batch correction techniques across the datasets that we aim to analyze, which makes it less prone to data-loss or noise. The similarity value is based on the fold-changes between clusters/groups of cells defined by the user. These fold-changes from different independent datasets are first computed using a Bayesian approach, we calculate this fold-change distribution using a permutation analysis that srink the fold-changes with no biological meaning. These differences in abundance are then combined using a pairwise dot product approach, after adding these feataure contributions and applying a fold-change concordance weight, a similarity value is obtained for each of the clusters of each of the datasets present.
-
-``` mermaid
-stateDiagram-v2
-FC: calculate FoldChange
-MT: pairwise dot-product
-SM: summarize value per feature
-SMC: calculate similarity value
-[*] --> FC: cluster i from dataset n
-FC --> FC: compare with cluster i+1 from same dataset
-FC --> MT: FoldChanges from cluster i of dataset n
-FC --> MT: FoldChanges from cluster i of dataset n+1
-MT --> SM: calculate mean
-SM --> SMC: sum features
-```
