@@ -7,11 +7,11 @@
 pairwiseClusterFoldChange(countData, clusters, nSubsampling, functToApply)
 }
 \arguments{
-\item{countData}{Matrix. Normalized counts containint gene expression.}
+\item{countData}{Matrix. Normalized counts containing gene expression.}
 
 \item{clusters}{Factor. A vector of corresponding cluster for each sample of (x).}
 
-\item{nSubsampling}{Numeric. Number of random samplings of cells to achieve fold change stability.}
+\item{nSubsampling}{Numeric. Number of random sampling of cells to achieve fold change stability.}
 }
 \value{
 A list of dataframes containing the pairwise fold changes between all combinations of cluster.

@@ -8,9 +8,9 @@
 #'   Volume 34, Issue 23, December 2018, Pages 4054–4063, https://doi.org/10.1093/bioinformatics/bty471
 #' Please consider citing also Erhard et. al. paper when using ClusterFoldSimilarity.
 #'
-#' @param countData Matrix. Normalized counts containint gene expression.
+#' @param countData Matrix. Normalized counts containing gene expression.
 #' @param clusters Factor. A vector of corresponding cluster for each sample of (x).
-#' @param nSubsampling Numeric. Number of random samplings of cells to achieve fold change stability.
+#' @param nSubsampling Numeric. Number of random sampling of cells to achieve fold change stability.
 #' 
 #' @return A list of dataframes containing the pairwise fold changes between all combinations of cluster.
 #' 

@@ -20,11 +20,13 @@ knitr::opts_chunk$set(eval=TRUE, warning=FALSE, error=FALSE, message=FALSE)
 
 # Installation
 
-The package can be installed from R software using devtools:
+The package can be installed using bioconductor install manager:
 
 ```{r eval=FALSE}
-library(devtools)
-install_github("OscarGVelasco/ClusterFoldSimilarity")
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("ClusterFoldSimilarity")
 ```
 
 ```{r setup}
@@ -326,7 +328,7 @@ ClusterFoldSimilarity::similarityHeatmap(similarityTable=similarityTableHumanMou
 
 # Similarity score calculation
 
-`ClusterFoldSimilarity` does not need to integrate the data, or apply any batch correction techniques across the datasets that we aim to analyze, which makes it less prone to data-loss or noise. The similarity value is based on the fold-changes between clusters/groups of cells defined by the user. These fold-changes from different independent datasets are first computed using a Bayesian approach, we calculate this fold-change distribution using a permutation analysis that srink the fold-changes with no biological meaning. These differences in abundance are then combined using a pairwise dot product approach, after adding these feataure contributions and applying a fold-change concordance weight, a similarity value is obtained for each of the clusters of each of the datasets present.
+`ClusterFoldSimilarity` does not need to integrate the data, or apply any batch correction techniques across the datasets that we aim to analyze, which makes it less prone to data-loss or noise. The similarity value is based on the fold-changes between clusters/groups of cells defined by the user. These fold-changes from different independent datasets are first computed using a Bayesian approach, we calculate this fold-change distribution using a permutation analysis that shrink the fold-changes with no biological meaning. These differences in abundance are then combined using a pairwise dot product approach, after adding these feature contributions and applying a fold-change concordance weight, a similarity value is obtained for each of the clusters of each of the datasets present.
 
 # Session information {.unnumbered}
 

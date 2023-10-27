@@ -31,8 +31,6 @@ The function returns a DataFrame containing the best top similarities between al
 \tabular{ll}{
    \code{similarityValue} \tab The top similarity value calculated between datasetL:clusterL and datasetR. \cr
    \tab \cr
-   \code{sem} \tab Standar Error of the Mean (SEM) of the scalar contribution coefficients computed for all features. \cr
-   \tab \cr
    \code{w} \tab Weight associated with the similarity score value. \cr
    \tab \cr
    \code{datasetL} \tab Dataset left, the dataset/sample which has been used to be compared.  \cr
