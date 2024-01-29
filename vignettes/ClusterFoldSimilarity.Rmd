@@ -65,7 +65,7 @@ library(dplyr)
 pancreasMuraro <- scRNAseq::MuraroPancreasData(ensembl=FALSE)
 pancreasMuraro <- pancreasMuraro[,rownames(colData(pancreasMuraro)[!is.na(colData(pancreasMuraro)$label),])]
 colData(pancreasMuraro)$cell.type <- colData(pancreasMuraro)$label
-rownames(pancreasMuraro) <- unlist(lapply(strsplit(rownames(pancreasMuraro), split="__"), function(x)x[[1]]))
+rownames(pancreasMuraro) <- make.names(unlist(lapply(strsplit(rownames(pancreasMuraro), split="__"), function(x)x[[1]])), unique = TRUE)
 singlecell1Seurat <- CreateSeuratObject(counts=counts(pancreasMuraro), meta.data=as.data.frame(colData(pancreasMuraro)))
 ```
 
@@ -80,6 +80,8 @@ knitr::kable(
 # Human pancreatic single cell data 2
 pancreasBaron <- scRNAseq::BaronPancreasData(which="human", ensembl=FALSE)
 colData(pancreasBaron)$cell.type <- colData(pancreasBaron)$label
+rownames(pancreasBaron) <- make.names(rownames(pancreasBaron), unique = TRUE)
+
 singlecell2Seurat <- CreateSeuratObject(counts=counts(pancreasBaron), meta.data=as.data.frame(colData(pancreasBaron)))
 ```
 
@@ -263,6 +265,7 @@ knitr::kable(
 colData(pancreasBaronMM)$cell.type <- colData(pancreasBaronMM)$label
 # Translate mouse gene ids to human ids
 # *for the sake of simplicity we are going to transform to uppercase all mouse gene names
+rownames(pancreasBaronMM) <-  make.names(rownames(pancreasBaronMM), unique = TRUE)
 rownames(pancreasBaronMM) <- toupper(rownames(pancreasBaronMM))
 # Create seurat object
 singlecell3Seurat <- CreateSeuratObject(counts=counts(pancreasBaronMM), meta.data=as.data.frame(colData(pancreasBaronMM)))

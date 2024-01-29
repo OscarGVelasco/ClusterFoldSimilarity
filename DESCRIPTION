@@ -1,7 +1,7 @@
 Package: ClusterFoldSimilarity
 Type: Package
 Title: Calculate similarity of clusters from different single cell samples using foldchanges
-Version: 0.99.10
+Version: 0.99.11
 Authors@R: person("Oscar", "Gonzalez-Velasco",
   email = "oscargvelasco@gmail.com",
   role = c("cre", "aut"),
@@ -18,13 +18,16 @@ Imports:
     graphics, 
     stats, 
     utils,
-    Matrix
+    Matrix,
+    cowplot,
+    dplyr,
+    reshape2,
+    Seurat,
+    SeuratObject,
+    SingleCellExperiment
 Suggests: 
     knitr,
     rmarkdown,
-    Seurat,
-    SeuratObject,
-    SingleCellExperiment,
     scRNAseq
 RoxygenNote: 7.2.3
 biocViews: SingleCell, Clustering, FeatureExtraction, GraphAndNetwork, GeneTarget, RNASeq

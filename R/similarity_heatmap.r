@@ -45,6 +45,11 @@
 #' 
 #' @author Oscar Gonzalez-Velasco
 #' @import ggplot2
+#' @import cowplot
+#' @import ggdendro
+#' @import stats
+#' @importFrom reshape2 melt
+#' @importFrom dplyr %>% filter arrange
 #' @export
 similarityHeatmap <- function(similarityTable=NULL,
                               mainDataset=NULL,
@@ -62,42 +67,88 @@ similarityHeatmap <- function(similarityTable=NULL,
   foundDataset <- unique(subMyTable$datasetR)
   labels_personaliz <- paste("Dataset", foundDataset)
   names(labels_personaliz) <- foundDataset
-  ylabel <- paste("Dataset",mainDataset, "clusterL")
-  # Extract the top 1 & 2 similarity values for heatmap highlighting
-  if(isTRUE(highlightTop)){
-  hilightedMaxTiles <- unlist(lapply(split(subMyTable, list(subMyTable$clusterL,subMyTable$datasetR)), function(similDf){
-    rownames(similDf)[order(similDf$similarityValue, decreasing=TRUE)[1]]
-    }))
-  hilightedSecondTiles <- unlist(lapply(split(subMyTable, list(subMyTable$clusterL,subMyTable$datasetR)) , function(similDf){
-    rownames(similDf)[order(similDf$similarityValue, decreasing=TRUE)[2]]
-  }))
+  ylabel <- paste("Dataset", mainDataset, "clusterL")
+  # Create the dendrogram for Rows:
+  nDistinctClasses <- length(unique(paste0(subMyTable[,"datasetR"], subMyTable[,"clusterR"])))
+  rows <- unique(subMyTable[,"clusterL"])
+  similarityMatrixAll <- matrix(subMyTable[,"similarityValue"], ncol=nDistinctClasses)
+  rownames(similarityMatrixAll) <- rows
+  dendoGlobalRows <- stats::hclust(stats::dist(similarityMatrixAll))
+  orderingHierarchicalRows <- dendoGlobalRows$labels[dendoGlobalRows$order]
+  dendrogramRows <- ggdendro::ggdendrogram(dendoGlobalRows, labels=FALSE, rotate=TRUE) +  
+    ggplot2::theme(plot.margin=ggplot2::unit(c(0, 0, 0, 0), units="npc"),
+          axis.text.y=ggplot2::element_blank(),
+          axis.text.x=ggplot2::element_blank())
+  # We split the similarity table by reference datasets:
+  similarityDfList <- split(subMyTable, f=subMyTable$datasetR )
+  # Create one plot per reference dataset:
+  listOfPlots <- lapply(similarityDfList, function(df){
+    # Contruct the Dendogram:
+    dataset2 <- unique(df$datasetR)
+    dataset1 <- mainDataset
+    similarityMatrix <- df %>% 
+      dplyr::filter(datasetL == dataset1 & datasetR == dataset2) %>% 
+      dplyr::arrange(desc(clusterL), clusterR)
+    rows <- unique(similarityMatrix$clusterL)
+    columns <- as.character(unique(similarityMatrix$clusterR))
+    similarityMatrixAll <- matrix(similarityMatrix$similarityValue, ncol=length(columns))
+    rownames(similarityMatrixAll) <- rows
+    colnames(similarityMatrixAll) <- columns
+    # Build the dendrogram
+    dendo <- stats::hclust(stats::dist(t(similarityMatrixAll)))
+    orderingHierarchical <- dendo$labels[dendo$order]
+    dendrogram <- ggdendro::ggdendrogram(dendo, labels=FALSE) +  
+      ggplot2::theme(plot.margin=ggplot2::unit(c(0, 0, 0, -0.4), units="npc"),
+            axis.text.y=ggplot2::element_blank(),
+            axis.text.x=ggplot2::element_blank())
+    # Matrix to plot:
+    df <- reshape2::melt(similarityMatrixAll)
+    colnames(df) <- c("clusterL", "clusterR", "similarityValue")
+    df <- df %>% dplyr::arrange(factor(clusterR, levels = orderingHierarchical))
+    df$clusterR <- factor(df$clusterR, levels = orderingHierarchical)
+    df$clusterL <- factor(df$clusterL, levels = orderingHierarchicalRows)
+    if(isTRUE(highlightTop)){
+      highlightTop <- data.frame(clusterR=max.col(similarityMatrixAll[orderingHierarchicalRows,orderingHierarchical]),
+                                 clusterL=1:nrow(similarityMatrixAll))
+      highlightSecond <- data.frame(clusterR=apply(similarityMatrixAll[orderingHierarchicalRows,orderingHierarchical],1,function(row){order(row, decreasing=TRUE)[2]}),
+                                    clusterL=1:nrow(similarityMatrixAll))
+    }
+    if(isFALSE(highlightTop)){
+      highlightTop <- stats::setNames(data.frame(matrix(ncol=2, nrow=0)), c("clusterR", "clusterL"))
+      highlightSecond <- stats::setNames(data.frame(matrix(ncol=2, nrow=0)), c("clusterR", "clusterL"))
+    }
+    # Build the plot
+    ggHeatmap <- ggplot2::ggplot(df) +
+      ggplot2::aes(y=clusterL, x=clusterR, fill=similarityValue) +
+      ggplot2::geom_tile() +
+      ggplot2::scale_fill_gradient2(low="#7855ba", # Dark Violet - Low
+                                    mid="#ffffff", # White - Medium
+                                    high="#8a0d00", # Dark red - High
+                                    guide="colorbar",
+                                    name="Similarity value") +
+      ggplot2::geom_rect(data=highlightSecond, size=0.6, fill=NA, colour="#990B00",
+                         ggplot2::aes(xmin=clusterR - 0.5, xmax=clusterR + 0.5, ymin=clusterL - 0.5, ymax=clusterL + 0.5)) +
+      ggplot2::geom_rect(data=highlightTop, size=0.6, fill=NA, colour="black",
+                         ggplot2::aes(xmin=clusterR - 0.5, xmax=clusterR + 0.5, ymin=clusterL - 0.5, ymax=clusterL + 0.5)) +
+      ggplot2::theme_minimal() +
+      ggplot2::ylab(ylabel) +
+      ggplot2::xlab(paste("Dataset",dataset2,"clusterR")) +
+      ggplot2::theme(
+        strip.text=ggplot2::element_text(face="bold", size=ggplot2::rel(0.8)),
+        strip.background=ggplot2::element_rect(fill="white", colour="black", linewidth=0.6),
+        axis.title.x=ggplot2::element_text(),
+        axis.text.x=ggplot2::element_text(angle=45, vjust=1, hjust=1),
+        legend.position="none", 
+        plot.margin=ggplot2::unit(c(0, 0, 0, 0), units="npc")
+      )
+    return(list(dendrogram, ggHeatmap))
+  })
+  if(length(foundDataset) > 1){
+    heatmaps <- cowplot::align_plots(plotlist=lapply(listOfPlots, function(plot){plot[[2]]}), align="h", axis="b")
+    dendros <- cowplot::align_plots(plotlist=lapply(listOfPlots, function(plot){plot[[1]]}), align="h", axis="b")
+    finalPlot <- cowplot::plot_grid(plotlist=c(dendros, heatmaps), align="v", axis="tb", rel_heights=c(0.2, 1))
+  } else{
+    finalPlot <- cowplot::plot_grid(listOfPlots[[1]][[1]], listOfPlots[[1]][[2]], nrow = 2, align="v", axis="tb", rel_heights=c(0.2, 1))
   }
-  if(isFALSE(highlightTop)){
-    hilightedMaxTiles <- NULL
-    hilightedSecondTiles <- NULL
+    return(finalPlot)
   }
-  # Build the plot
-  g <- ggplot2::ggplot(subMyTable, ggplot2::aes(y=clusterL, x=clusterR, fill=similarityValue)) +
-    ggplot2::geom_tile() +
-    ggplot2::geom_tile(data=subMyTable[hilightedSecondTiles,], ggplot2::aes(width=0.98, height=0.98), 
-                       fill=NA, color="#aa0d00", linewidth=1.2) +
-    ggplot2::geom_tile(data=subMyTable[hilightedMaxTiles,], ggplot2::aes(width=0.98, height=0.98),
-                       fill=NA, color="#5a0d00", linewidth=1.2) +
-    ggplot2::scale_fill_gradient2(low="#7855ba", # Dark Violet - Low
-                                  mid="#ffffff", # White - Medium
-                                  high="#8a0d00", # Dark red - High
-                                  guide="colorbar",
-                                  name="Similarity value") + 
-    {if(length(foundDataset)>1)ggplot2::facet_grid(~ datasetR, scales="free_x", space="free_x", 
-                                                   labeller=ggplot2::as_labeller(labels_personaliz))}+
-    {if(length(foundDataset)==1)ggplot2::xlab(paste(labels_personaliz, "clusterR"))}+
-    ggplot2::theme_minimal() +
-    ggplot2::ylab(ylabel) +
-    ggplot2::theme(
-      strip.text=ggplot2::element_text(face="bold", size=ggplot2::rel(0.8)),
-      strip.background=ggplot2::element_rect(fill="white", colour="black", linewidth=0.6),
-      axis.title.x=ggplot2::element_text(),
-      axis.text.x=ggplot2::element_text(angle=45, vjust=1, hjust=1)
-    )
-  return(g)
-}

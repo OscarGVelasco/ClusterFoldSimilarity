@@ -66,6 +66,8 @@
 #' @importFrom utils head
 #' @importFrom BiocParallel bplapply
 #' @importFrom Matrix Matrix
+#' @importFrom SingleCellExperiment colLabels counts
+#' @importFrom Seurat GetAssayData Idents
 #' @export
 clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFeatures=1, nSubsampling=15, parallel=FALSE){
   if(is.null(scList) | (length(scList)<2)){
