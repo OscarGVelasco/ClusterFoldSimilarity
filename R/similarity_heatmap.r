@@ -70,15 +70,16 @@ similarityHeatmap <- function(similarityTable=NULL,
   ylabel <- paste("Dataset", mainDataset, "clusterL")
   # Create the dendrogram for Rows:
   nDistinctClasses <- length(unique(paste0(subMyTable[,"datasetR"], subMyTable[,"clusterR"])))
+  subMyTable <- subMyTable[order(subMyTable$clusterR),]
   rows <- unique(subMyTable[,"clusterL"])
   similarityMatrixAll <- matrix(subMyTable[,"similarityValue"], ncol=nDistinctClasses)
   rownames(similarityMatrixAll) <- rows
   dendoGlobalRows <- stats::hclust(stats::dist(similarityMatrixAll))
   orderingHierarchicalRows <- dendoGlobalRows$labels[dendoGlobalRows$order]
-  dendrogramRows <- ggdendro::ggdendrogram(dendoGlobalRows, labels=FALSE, rotate=TRUE) +  
-    ggplot2::theme(plot.margin=ggplot2::unit(c(0, 0, 0, 0), units="npc"),
-          axis.text.y=ggplot2::element_blank(),
-          axis.text.x=ggplot2::element_blank())
+  # dendrogramRows <- ggdendro::ggdendrogram(dendoGlobalRows, labels=FALSE, rotate=TRUE) +  
+  #   ggplot2::theme(plot.margin=ggplot2::unit(c(0, 0, 0, 0), units="npc"),
+  #         axis.text.y=ggplot2::element_blank(),
+  #         axis.text.x=ggplot2::element_blank())
   # We split the similarity table by reference datasets:
   similarityDfList <- split(subMyTable, f=subMyTable$datasetR )
   # Create one plot per reference dataset:
@@ -89,6 +90,9 @@ similarityHeatmap <- function(similarityTable=NULL,
     similarityMatrix <- df %>% 
       dplyr::filter(datasetL == dataset1 & datasetR == dataset2) %>% 
       dplyr::arrange(desc(clusterL), clusterR)
+    
+    similarityMatrix <- similarityMatrix[order(similarityMatrix$clusterR),]
+    
     rows <- unique(similarityMatrix$clusterL)
     columns <- as.character(unique(similarityMatrix$clusterR))
     similarityMatrixAll <- matrix(similarityMatrix$similarityValue, ncol=length(columns))
@@ -98,7 +102,7 @@ similarityHeatmap <- function(similarityTable=NULL,
     dendo <- stats::hclust(stats::dist(t(similarityMatrixAll)))
     orderingHierarchical <- dendo$labels[dendo$order]
     dendrogram <- ggdendro::ggdendrogram(dendo, labels=FALSE) +  
-      ggplot2::theme(plot.margin=ggplot2::unit(c(0, 0, 0, -0.4), units="npc"),
+      ggplot2::theme(plot.margin=ggplot2::unit(c(0, 0, 0, 0), units="npc"),
             axis.text.y=ggplot2::element_blank(),
             axis.text.x=ggplot2::element_blank())
     # Matrix to plot:
