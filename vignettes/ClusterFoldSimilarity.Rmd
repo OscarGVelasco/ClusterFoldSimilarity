@@ -265,8 +265,7 @@ knitr::kable(
 colData(pancreasBaronMM)$cell.type <- colData(pancreasBaronMM)$label
 # Translate mouse gene ids to human ids
 # *for the sake of simplicity we are going to transform to uppercase all mouse gene names
-rownames(pancreasBaronMM) <-  make.names(rownames(pancreasBaronMM), unique = TRUE)
-rownames(pancreasBaronMM) <- toupper(rownames(pancreasBaronMM))
+rownames(pancreasBaronMM) <- make.names(toupper(rownames(pancreasBaronMM)), unique=TRUE)
 # Create seurat object
 singlecell3Seurat <- CreateSeuratObject(counts=counts(pancreasBaronMM), meta.data=as.data.frame(colData(pancreasBaronMM)))
 
