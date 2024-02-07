@@ -46,10 +46,10 @@
 #' @author Oscar Gonzalez-Velasco
 #' @import ggplot2
 #' @import cowplot
-#' @import ggdendro
 #' @import stats
 #' @importFrom reshape2 melt
 #' @importFrom dplyr %>% filter arrange
+#' @importFrom ggdendro ggdendrogram
 #' @export
 similarityHeatmap <- function(similarityTable=NULL,
                               mainDataset=NULL,

@@ -24,7 +24,8 @@ Imports:
     reshape2,
     Seurat,
     SeuratObject,
-    SingleCellExperiment
+    SingleCellExperiment,
+    ggdendro
 Suggests: 
     knitr,
     rmarkdown,
