@@ -29,7 +29,8 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown,
-    scRNAseq
+    scRNAseq,
+    BiocStyle
 RoxygenNote: 7.2.3
 biocViews: SingleCell, Clustering, FeatureExtraction, GraphAndNetwork, GeneTarget, RNASeq
 VignetteBuilder: knitr

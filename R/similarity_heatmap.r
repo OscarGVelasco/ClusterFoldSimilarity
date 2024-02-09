@@ -44,12 +44,12 @@
 #' }
 #' 
 #' @author Oscar Gonzalez-Velasco
-#' @import ggplot2
-#' @import cowplot
-#' @import stats
-#' @importFrom reshape2 melt
 #' @importFrom dplyr %>% filter arrange
 #' @importFrom ggdendro ggdendrogram
+#' @import ggplot2
+#' @importFrom cowplot align_plots plot_grid
+#' @importFrom reshape2 melt
+#' @importFrom stats hclust dist setNames
 #' @export
 similarityHeatmap <- function(similarityTable=NULL,
                               mainDataset=NULL,
