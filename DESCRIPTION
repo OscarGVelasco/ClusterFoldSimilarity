@@ -29,6 +29,7 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown,
+    kableExtra,
     scRNAseq,
     BiocStyle
 RoxygenNote: 7.2.3
