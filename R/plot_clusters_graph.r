@@ -5,7 +5,7 @@
 #' This function will calculate a similarity coeficient using the fold changes of shared genes among clusters of different samples/batches. The similarity coeficient
 #' is calculated using the dotproduct of every pairwise combination of Fold Changes between a source cluster i of sample n and all the target clusters in sample j.
 #'
-#' @param similarityTable Dataframe. A table obtained from ClusterFoldSimilarity that contains the similarity values as a column "similarity_value" that represents 
+#' @param similarityTable Dataframe. A table obtained from ClusterFoldSimilarity that contains the similarity values as a column "similarityValue" that represents 
 #' the similarity of a source cluster to a target cluster.
 #' 
 #' @return This function plots a graph in which the nodes are clusters from a specific dataset, the edges represent the similarity and the direction
