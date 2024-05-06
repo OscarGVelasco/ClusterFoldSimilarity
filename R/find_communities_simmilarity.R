@@ -65,13 +65,13 @@ findCommunitiesSimmilarity <- function(similarityTable=NULL){
   # Build the graph
   g <- igraph::graph_from_data_frame(relations, directed=TRUE)
   # Graph community analysis using InfoMap algorithm
-  communities = igraph::cluster_infomap(g)
+  communities <- igraph::cluster_infomap(g)
+  comunityMermership <- igraph::membership(communities)
+  nCommunities <- length(unique(comunityMermership))
   # modularity measure
   message("Modularity of the division of a graph into subgraphs: ", round(x=igraph::modularity(communities), digits=2))
   # Plot the graph with the module groups
   l <- igraph::layout_with_fr(g)
-  plot(communities, g, layout=l)
-  
   ## Retrieve the name and order of the datasets
   setNames <- unique(df$datasetL)
   cl <- as.numeric(apply(table(df$datasetL, df$clusterL)[setNames,] != 0, 1, sum))
@@ -79,15 +79,19 @@ findCommunitiesSimmilarity <- function(similarityTable=NULL){
   clusterColorsPalete <- c("#FDD49E", "#D5BADB", "#7EB6D9", "#DBECDA", "#F28D35", "#4AA147", "#86608E",
                                     "#3C7DA6", "#DE77AE", "#D9E8F5", "#92C791", "#D94D1A", "#F2D377")
   clCodes <- clusterColorsPalete[seq(length(setNames))]
+  # Define the colors for the communities
+  #groupColores <- rev(grDevices::colorRampPalette(colors=ggplot2::alpha(colour=RColorBrewer::brewer.pal(8, "Set2"), alpha=0.1))(nCommunities))
+  groupColores <- grDevices::rainbow(5, alpha=0.15)
+  groupColoresBorder <- grDevices::rainbow(5, alpha=0.4)
+  groupColores = colorspace::desaturate(col=groupColores, amount=0.1)
   base::plot(communities, g, layout=l, vertex.label=gsub(pattern = "_group_", replacement = ".",x=igraph::V(g)$name),
              vertex.color=scales::alpha(rep(clCodes, cl), alpha=0.8), edge.color="black", col=scales::alpha(rep(clCodes, cl), alpha=0.8),
-             vertex.size=15, vertex.frame.color=NA, vertex.label.color="black", 
+             vertex.size=15, vertex.frame.color=NA, vertex.label.color="black",  mark.col=groupColores, mark.border = groupColoresBorder,
              vertex.label.cex=0.9, vertex.label.dist=0, edge.curved=0.2)
   legend('topleft', horiz=TRUE, y.intersp=0.5, x.intersp=0.5, legend=paste0('Dataset ', unique(df$datasetL)),
          fill=clCodes, xpd=TRUE, inset=c(0, 0), cex=0.8)
   
   # Return the module info as a data.frame
-  comunityMermership <- igraph::membership(communities)
   samples <- unlist(lapply(strsplit(names(comunityMermership), "_group_"), function(nameEntry)nameEntry[1]))
   groups <- unlist(lapply(strsplit(names(comunityMermership), "_group_"), function(nameEntry)nameEntry[2]))
   dfMemberships <- data.frame(sample=samples, group=groups, community=c(comunityMermership))
