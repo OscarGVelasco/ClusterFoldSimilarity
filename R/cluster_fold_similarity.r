@@ -157,7 +157,7 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
   }
   ## Calculate cluster FoldChange pairwise values:
   markerScList <- list()
-  message("Using a common set of", length(features), "features.")
+  message("Using a common set of ", length(features), " features.")
   # Testing the number of draws/subsamplings of cells needed to see *all cells*
   cellDraw <- function(n){
     percentage <- (1/3) * n

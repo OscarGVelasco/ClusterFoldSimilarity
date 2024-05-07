@@ -170,6 +170,22 @@ knitr::kable(
 )
 ```
 
+## Analyzing graph communities to identify super-groups of similar cell populations
+
+To easily analyze and identify the similarities between the different datasets and cell-groups, we can find the communities that constitute the directed graph (cluster the nodes based on the graph´s closely-related elements).
+
+We can make so by using the function `findCommunitiesSimmilarity()` from the `ClusterFoldSimilarity` package. It uses the InfoMap algorithm to find the best fitting communities. We just need the similarity table obtained from `clusterFoldSimilarity()` as explained on the previous section, the function will plot the graph with the communities and return a data frame containing the community that each sample & cluster/group belongs to.
+
+```{r, fig.wide = TRUE}
+cellCommunities <- findCommunitiesSimmilarity(similarityTable = similarityTable)
+```
+
+```{r,  echo=FALSE}
+knitr::kable(
+  head(cellCommunities)
+)
+```
+
 ## Retrieving the top-n similarities
 
 If we suspect that clusters could be related with more than one cluster of other datasets, we can retrieve the top n similarities for each cluster:

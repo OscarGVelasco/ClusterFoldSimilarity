@@ -108,12 +108,11 @@ A data.frame with the results is returned containing:
 -   `topFeatureConserved`: The features (e.g.: genes, peaks...) that most contributed to the similarity between clusterL & clusterR.
 -   `featureScore`: The similarity score contribution for the specific topFeatureConserved (e.g.: genes, peaks...).
 
-By default, `clusterFoldSimilarity()` will plot a graph network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained. The arrows point in the direction of the similarity (datasetL:clusterL -\> datasetR:clusterR); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar. The graph plot can also be obtained by using the function `plotClustersGraph()` from this package, using as input the similarity table.
+By default, `clusterFoldSimilarity()` will plot a graph directed network that visualizes the connections between the clusters from the different datasets using the similarity table that has been obtained. The arrows point in the direction of the similarity (datasetL:clusterL -\> datasetR:clusterR); it can be useful for identifying relationships between groups of clusters and cell-populations that tend to be more similar. The graph plot can also be obtained by using the function `plotClustersGraph()` from this package, using as input the similarity table.
 
 In this example, as we have information regarding cell-type labels, we can check how the cell types match by calculating the most abundant cell type on each of the similar clusters:
 
 ```{r}
-
 type.count <- singlecell.object.list[[2]][[]] %>% 
   group_by(seurat_clusters) %>% 
   count(cell.type) %>%
@@ -122,7 +121,18 @@ type.count <- singlecell.object.list[[2]][[]] %>%
 
 cbind.data.frame(type.count, 
                  matched.type = rep(table(type.count$seurat_clusters), x = similarity.table[similarity.table$datasetL == "human.NA",]$clusterR))
+```
 
+## Analyzing graph communities to identify super-groups of similar cell populations
+
+To easily analyze and identify the similarities between the different datasets and cell-groups, we can find the communities that constitute the directed graph (cluster the nodes based on the graph´s closely-related elements).
+
+We can make so by using the function `findCommunitiesSimmilarity()` from the `ClusterFoldSimilarity` package. It uses the InfoMap algorithm to find the best fitting communities. We just need the similarity table obtained from `clusterFoldSimilarity()` as explained on the previous section, the function will plot the graph with the communities and return a data frame containing the community that each sample & cluster/group belongs to.
+
+```{r}
+cell.communities <- findCommunitiesSimmilarity(similarityTable = similarity.table)
+
+head(cell.communities)
 ```
 
 ## Retrieving the top-n similarities
