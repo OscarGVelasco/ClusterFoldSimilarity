@@ -56,7 +56,7 @@ plotClustersGraph <- function(similarityTable=NULL){
   from <- paste(paste("D", df$datasetL, sep="."), paste0("C", df$clusterL), sep=".")
   to <- paste(paste("D", df$datasetR, sep="."), paste0("C", df$clusterR), sep=".")
   ## igraph
-  relations <- data.frame(from=from, to=to, sim=df$similarityValue)
+  relations <- data.frame(from=from, to=to, weight=df$similarityValue)
   g <- igraph::graph_from_data_frame(relations, directed=TRUE)
   l <- igraph::layout_with_fr(g)
   ## Retrieve the name and order of the datasets
@@ -68,8 +68,8 @@ plotClustersGraph <- function(similarityTable=NULL){
   clCodes <- clusterColorsPalete[seq(length(setNames))]
   par(mar=c(1, 1, 1, 1));
   base::plot(g, vertex.label=igraph::V(g)$name, edge.arrow.size=.3, layout=l,
-             vertex.color=scales::alpha(rep(clCodes, cl), alpha=0.8), edge.color="black",
-             vertex.size=15, vertex.frame.color=NA, vertex.label.color="black", 
+             vertex.color=scales::alpha(rep(clCodes, cl), alpha=0.8), edge.color=scales::alpha("black", alpha=0.6),
+             vertex.size=15, edge.arrow.size=0.5, vertex.frame.color=NA, vertex.label.color="black", 
              vertex.label.cex=0.9, vertex.label.dist=0, edge.curved=0.2)
   legend('topleft', horiz=TRUE, y.intersp=0.5, x.intersp=0.5, legend=paste0('Dataset ', unique(df$datasetL)),
          fill=clCodes, xpd=TRUE, inset=c(0, 0), cex=0.8)
