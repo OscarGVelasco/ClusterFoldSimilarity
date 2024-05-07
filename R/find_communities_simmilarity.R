@@ -6,6 +6,7 @@
 #'
 #' @param similarityTable Dataframe. A table obtained from ClusterFoldSimilarity that contains the similarity values as a column "similarityValue" that represents 
 #' the similarity of a source cluster to a target cluster.
+#' @param nbTrials Numeric. The number of attempts to partition the network using InfoMap algorithm (default 50).
 #' 
 #' @return This function returns a data frame with the community that each node of the network (cell groups defined by the user) belongs to, and plots a graph in 
 #' which the nodes are clusters from a specific dataset, the edges represent the similarity and the direction of that similarity between clusters.
@@ -52,7 +53,7 @@
 #' @importFrom scales alpha
 #' @importFrom graphics legend par
 #' @export
-findCommunitiesSimmilarity <- function(similarityTable=NULL){
+findCommunitiesSimmilarity <- function(similarityTable=NULL, nbTrials=50){
   if(!is.data.frame(similarityTable)){
     stop("similarityTable has to be a dataframe return by clusterFoldSimilarity")
   }else if(!(c("similarityValue") %in% colnames(similarityTable))){
@@ -67,7 +68,7 @@ findCommunitiesSimmilarity <- function(similarityTable=NULL){
   # Build the graph
   g <- igraph::graph_from_data_frame(relations, directed=TRUE)
   # Graph community analysis using InfoMap algorithm
-  communities <- igraph::cluster_infomap(g, nb.trials=30)
+  communities <- igraph::cluster_infomap(g, nb.trials=nbTrials)
   comunityMermership <- igraph::membership(communities)
   nCommunities <- length(unique(comunityMermership))
   # modularity measure
@@ -84,12 +85,14 @@ findCommunitiesSimmilarity <- function(similarityTable=NULL){
   clCodes <- clusterColorsPalete[seq(length(setNames))]
   # Define the colors for the communities
   #groupColores <- rev(grDevices::colorRampPalette(colors=ggplot2::alpha(colour=RColorBrewer::brewer.pal(8, "Set2"), alpha=0.1))(nCommunities))
-  groupColores <- grDevices::rainbow(5, alpha=0.15)
-  groupColoresBorder <- grDevices::rainbow(5, alpha=0.4)
-  groupColores = colorspace::desaturate(col=groupColores, amount=0.1)
+  # groupColores <- grDevices::rainbow(nCommunities, alpha=0.15)
+  groupColores <- hcl.colors(nCommunities, palette = "Set2", alpha = 0.2, rev = FALSE, fixup = TRUE)
+  #groupColores = colorspace::desaturate(col=groupColores, amount=0.1)
+  groupColoresBorder <- hcl.colors(nCommunities, palette = "Set2", alpha = 0.6, rev = FALSE, fixup = TRUE)
+  par(mar=c(1, 1, 1, 1));
   base::plot(communities, g, layout=l, vertex.label=gsub(pattern = "_group_", replacement = ".",x=igraph::V(g)$name),
              vertex.color=scales::alpha(rep(clCodes, cl), alpha=0.8), edge.color=scales::alpha("black", alpha=0.6), col=scales::alpha(rep(clCodes, cl), alpha=0.8),
-             vertex.size=15, edge.arrow.size=0.5, vertex.frame.color=NA, vertex.label.color="black",  mark.col=groupColores, mark.border = groupColoresBorder,
+             vertex.size=15, edge.arrow.size=0.4, vertex.frame.color=NA, vertex.label.color="black",  mark.col=groupColores, mark.border = groupColoresBorder,
              vertex.label.cex=0.9, vertex.label.dist=0, edge.curved=0.2)
   legend('topleft', horiz=TRUE, y.intersp=0.5, x.intersp=0.5, legend=paste0('Dataset ', unique(df$datasetL)),
          fill=clCodes, xpd=TRUE, inset=c(0, 0), cex=0.8)
