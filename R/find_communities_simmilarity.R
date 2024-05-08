@@ -6,7 +6,8 @@
 #'
 #' @param similarityTable Dataframe. A table obtained from ClusterFoldSimilarity that contains the similarity values as a column "similarityValue" that represents 
 #' the similarity of a source cluster to a target cluster.
-#' @param nbTrials Numeric. The number of attempts to partition the network using InfoMap algorithm (default 50).
+#' @param nIterations Numeric. The number of iterations for the Leiden clustering algorithm (default 10).
+#' @param leidenResolution Numeric. The resolution parameter for the Leiden clustering algorithm (default 1.2).
 #' 
 #' @return This function returns a data frame with the community that each node of the network (cell groups defined by the user) belongs to, and plots a graph in 
 #' which the nodes are clusters from a specific dataset, the edges represent the similarity and the direction of that similarity between clusters.
@@ -53,30 +54,26 @@
 #' @importFrom scales alpha
 #' @importFrom graphics legend par
 #' @export
-findCommunitiesSimmilarity <- function(similarityTable=NULL, nbTrials=50){
-  if(!is.data.frame(similarityTable)){
+findCommunitiesSimmilarity <- function (similarityTable = NULL, nIterations = 10, leidenResolution=1) 
+{
+  if (!is.data.frame(similarityTable)) {
     stop("similarityTable has to be a dataframe return by clusterFoldSimilarity")
-  }else if(!(c("similarityValue") %in% colnames(similarityTable))){
+  }
+  else if (!(c("similarityValue") %in% colnames(similarityTable))) {
     stop("similarityTable has to be a dataframe return by clusterFoldSimilarity")
   }
   df <- similarityTable
-  # We set the negative similarity values to 0 as InfoMap algorithm cannot use negative weights
-  df[which(df$similarityValue<0), "similarityValue"] <- 1e-5
-  from <- paste(df$datasetL, df$clusterL, sep="_group_")
-  to <- paste(df$datasetR, df$clusterR, sep="_group_")
-  relations <- data.frame(from=from, to=to, weight=df$similarityValue)
-  # Build the graph
-  g <- igraph::graph_from_data_frame(relations, directed=TRUE)
-  # Graph community analysis using InfoMap algorithm
-  communities <- igraph::cluster_infomap(g, nb.trials=nbTrials)
+  df[which(df$similarityValue < 0), "similarityValue"] <- 1e-05
+  from <- paste(df$datasetL, df$clusterL, sep = "_group_")
+  to <- paste(df$datasetR, df$clusterR, sep = "_group_")
+  relations <- data.frame(from = from, to = to, weight = df$similarityValue)
+  g <- igraph::graph_from_data_frame(relations, directed = TRUE)
+  gUndirected <- igraph::as.undirected(g, mode = "collapse", edge.attr.comb = "sum")
+  communities <- igraph::cluster_leiden(gUndirected, resolution_parameter = leidenResolution, n_iterations = nIterations)
   comunityMermership <- igraph::membership(communities)
   nCommunities <- length(unique(comunityMermership))
-  # modularity measure
-  message("NUmber of communities: ", nCommunities)
-  message("Modularity of the division of a graph into subgraphs: ", round(x=igraph::modularity(communities), digits=2))
-  # Plot the graph with the module groups
-  l <- igraph::layout_with_fr(g)
-  ## Retrieve the name and order of the datasets
+  message("Number of communities: ", nCommunities)
+  l <- igraph::layout_with_kk(g)
   setNames <- unique(df$datasetL)
   cl <- as.numeric(apply(table(df$datasetL, df$clusterL)[setNames,] != 0, 1, sum))
   ## Personalized colors  

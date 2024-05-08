@@ -58,7 +58,7 @@ plotClustersGraph <- function(similarityTable=NULL){
   ## igraph
   relations <- data.frame(from=from, to=to, weight=df$similarityValue)
   g <- igraph::graph_from_data_frame(relations, directed=TRUE)
-  l <- igraph::layout_with_fr(g)
+  l <- igraph::layout_with_kk(g)
   ## Retrieve the name and order of the datasets
   setNames <- unique(df$datasetL)
   cl <- as.numeric(apply(table(df$datasetL, df$clusterL)[setNames,] != 0, 1, sum))
