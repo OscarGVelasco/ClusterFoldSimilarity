@@ -11,6 +11,9 @@ library(devtools)
 install_github("OscarGVelasco/ClusterFoldSimilarity")
 ```
 
+### Updates:
+- May 2024: added new feature `findCommunitiesSimmilarity` function, which allows finding communities on the similarity graph by clustering nodes using Leiden algorithm. This function plots the graph with the communities color-coded and returns a data frame with the results.
+
 # Introduction
 
 Comparing single-cell data across different datasets, samples and batches has demonstrated to be challenging. `ClusterFoldSimilarity` aims to solve the complexity of comparing different single-cell datasets by computing similarity scores between clusters (or user-defined groups) from any number of independent single-cell experiments, including different species and sequencing technologies. It accomplishes this by identifying analogous fold-change patterns across cell groups that share a common set of features (such as genes). Additionally, it selects and reports the top important features that have contributed to the observed similarity, serving as a tool for feature selection.
