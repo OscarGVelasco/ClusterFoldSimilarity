@@ -130,7 +130,7 @@ cbind.data.frame(type.count,
 
 To easily analyze and identify the similarities between the different datasets and cell-groups, we can find the communities that constitute the directed graph (cluster the nodes based on the graph´s closely-related elements).
 
-We can make so by using the function `findCommunitiesSimmilarity()` from the `ClusterFoldSimilarity` package. It uses the InfoMap algorithm to find the best fitting communities. We just need the similarity table obtained from `clusterFoldSimilarity()` as explained on the previous section, the function will plot the graph with the communities and return a data frame containing the community that each sample & cluster/group belongs to.
+We can make so by using the function `findCommunitiesSimmilarity()` from the `ClusterFoldSimilarity` package. It uses the Leiden clustering algorithm to find the best fitting communities. We just need the similarity table obtained from `clusterFoldSimilarity()` as explained on the previous section, the function will plot the graph with the communities and return a data frame containing the community that each sample & cluster/group belongs to. We can also adjust the granularity of the clustering.
 
 ```{r}
 cell.communities <- findCommunitiesSimmilarity(similarityTable = similarity.table)
