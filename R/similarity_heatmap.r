@@ -135,6 +135,7 @@ similarityHeatmap <- function(similarityTable=NULL,
       ggplot2::geom_rect(data=highlightTop, size=0.6, fill=NA, colour="black",
                          ggplot2::aes(xmin=clusterR - 0.5, xmax=clusterR + 0.5, ymin=clusterL - 0.5, ymax=clusterL + 0.5)) +
       ggplot2::theme_minimal() +
+      ggplot2::coord_equal() +
       ggplot2::ylab(ylabel) +
       ggplot2::xlab(paste("Dataset",dataset2,"clusterR")) +
       ggplot2::theme(
