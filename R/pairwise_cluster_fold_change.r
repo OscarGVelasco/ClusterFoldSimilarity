@@ -24,7 +24,8 @@ pairwiseClusterFoldChange <- function(countData, clusters, nSubsampling, functTo
   minNumFeatures <- 3
   cellPortion <- 1/3
   fcFunct <- function(x, y) "-"(log2(x), log2(y))
-  pseudoCount <- function(counts){counts + sqrt((counts*counts)+1)}
+  # To avoid integer overflow use counts^2 instead of counts*counts:
+  pseudoCount <- function(counts){counts + sqrt((counts^2)+1)}
   clusters <- as.factor(clusters)
   cellGroups <- split(seq_len(ncol(countData)), clusters)
   groupsByCluster <- expand.grid(levels(clusters), levels(clusters))
