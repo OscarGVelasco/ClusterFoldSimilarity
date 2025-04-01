@@ -58,7 +58,8 @@ plotClustersGraph <- function(similarityTable=NULL){
   ## igraph
   relations <- data.frame(from=from, to=to, weight=df$similarityValue)
   g <- igraph::graph_from_data_frame(relations, directed=TRUE)
-  l <- igraph::layout_with_kk(g)
+  l <- igraph::layout_with_gem(g)
+  # l <- igraph::layout_with_kk(g)
   ## Retrieve the name and order of the datasets
   setNames <- unique(df$datasetL)
   cl <- as.numeric(apply(table(df$datasetL, df$clusterL)[setNames,] != 0, 1, sum))
@@ -66,7 +67,7 @@ plotClustersGraph <- function(similarityTable=NULL){
   clusterColorsPalete <- c("#FDD49E", "#D5BADB", "#7EB6D9", "#DBECDA", "#F28D35", "#4AA147", "#86608E",
                           "#3C7DA6", "#DE77AE", "#D9E8F5", "#92C791", "#D94D1A", "#F2D377")
   clCodes <- clusterColorsPalete[seq(length(setNames))]
-  par(mar=c(1, 1, 1, 1));
+  par(mar=c(1, 1, 3, 1));
   base::plot(g, vertex.label=igraph::V(g)$name, edge.arrow.size=.3, layout=l,
              vertex.color=scales::alpha(rep(clCodes, cl), alpha=0.8), edge.color=scales::alpha("black", alpha=0.6),
              vertex.size=15, edge.arrow.size=0.4, vertex.frame.color=NA, vertex.label.color="black", 

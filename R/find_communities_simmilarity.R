@@ -54,7 +54,7 @@
 #' @importFrom scales alpha
 #' @importFrom graphics legend par
 #' @export
-findCommunitiesSimmilarity <- function (similarityTable = NULL, nIterations = 10, leidenResolution=1) 
+findCommunitiesSimmilarity <- function(similarityTable = NULL, nIterations = 10, leidenResolution = 1) 
 {
   if (!is.data.frame(similarityTable)) {
     stop("similarityTable has to be a dataframe return by clusterFoldSimilarity")
@@ -73,30 +73,29 @@ findCommunitiesSimmilarity <- function (similarityTable = NULL, nIterations = 10
   comunityMermership <- igraph::membership(communities)
   nCommunities <- length(unique(comunityMermership))
   message("Number of communities: ", nCommunities)
-  l <- igraph::layout_with_kk(g)
+  l <- igraph::layout_with_gem(g)
   setNames <- unique(df$datasetL)
   cl <- as.numeric(apply(table(df$datasetL, df$clusterL)[setNames,] != 0, 1, sum))
   ## Personalized colors  
-  clusterColorsPalete <- c("#FDD49E", "#D5BADB", "#7EB6D9", "#DBECDA", "#F28D35", "#4AA147", "#86608E",
-                                    "#3C7DA6", "#DE77AE", "#D9E8F5", "#92C791", "#D94D1A", "#F2D377")
+  clusterColorsPalete <- c("#FDD49E", "#D5BADB", "#7EB6D9", "#DBECDA", "#F28D35", "#4AA147", "#86608E", 
+                           "#3C7DA6", "#DE77AE", "#D9E8F5", "#92C791", "#D94D1A", "#F2D377")
   clCodes <- clusterColorsPalete[seq(length(setNames))]
-  # Define the colors for the communities
-  #groupColores <- rev(grDevices::colorRampPalette(colors=ggplot2::alpha(colour=RColorBrewer::brewer.pal(8, "Set2"), alpha=0.1))(nCommunities))
-  # groupColores <- grDevices::rainbow(nCommunities, alpha=0.15)
+  # Define the colors for the communities:
   groupColores <- hcl.colors(nCommunities, palette = "Set2", alpha = 0.2, rev = FALSE, fixup = TRUE)
-  #groupColores = colorspace::desaturate(col=groupColores, amount=0.1)
   groupColoresBorder <- hcl.colors(nCommunities, palette = "Set2", alpha = 0.6, rev = FALSE, fixup = TRUE)
-  par(mar=c(1, 1, 1, 1));
-  base::plot(communities, g, layout=l, vertex.label=gsub(pattern = "_group_", replacement = ".",x=igraph::V(g)$name),
-             vertex.color=scales::alpha(rep(clCodes, cl), alpha=0.8), edge.color=scales::alpha("black", alpha=0.6), col=scales::alpha(rep(clCodes, cl), alpha=0.8),
-             vertex.size=15, edge.arrow.size=0.4, vertex.frame.color=NA, vertex.label.color="black",  mark.col=groupColores, mark.border = groupColoresBorder,
-             vertex.label.cex=0.9, vertex.label.dist=0, edge.curved=0.2)
-  legend('topleft', horiz=TRUE, y.intersp=0.5, x.intersp=0.5, legend=paste0('Dataset ', unique(df$datasetL)),
-         fill=clCodes, xpd=TRUE, inset=c(0, 0), cex=0.8)
-  
+  par(mar = c(1, 1, 3, 1))
+  base::plot(communities, g, layout = l, vertex.label = gsub(pattern = "_group_", replacement = ".", x = igraph::V(g)$name), 
+             vertex.color = scales::alpha(rep(clCodes,  cl), alpha = 0.8), edge.color = scales::alpha("black", alpha = 0.6), col = scales::alpha(rep(clCodes, cl), alpha = 0.8), 
+             vertex.size = 15, edge.arrow.size = 0.4, vertex.frame.color = NA, 
+             vertex.label.color = "black", mark.col = groupColores, 
+             mark.border = groupColoresBorder, vertex.label.cex = 0.9, 
+             vertex.label.dist = 0, edge.curved = 0.2)
+  legend("topleft", horiz = FALSE, y.intersp = 0.8, x.intersp = 0.5, box.lwd = 0,box.col = "white",
+         legend = paste0("Dataset ", unique(df$datasetL)), fill = clCodes,
+         xpd = TRUE, inset = c(0, 0), cex = 0.8)
   # Return the module info as a data.frame
-  samples <- unlist(lapply(strsplit(names(comunityMermership), "_group_"), function(nameEntry)nameEntry[1]))
-  groups <- unlist(lapply(strsplit(names(comunityMermership), "_group_"), function(nameEntry)nameEntry[2]))
-  dfMemberships <- data.frame(sample=samples, group=groups, community=c(comunityMermership))
+  samples <- unlist(lapply(strsplit(names(comunityMermership), "_group_"), function(nameEntry) nameEntry[1]))
+  groups <- unlist(lapply(strsplit(names(comunityMermership), "_group_"), function(nameEntry) nameEntry[2]))
+  dfMemberships <- data.frame(sample = samples, group = groups, community = c(comunityMermership))
   return(dfMemberships)
 }

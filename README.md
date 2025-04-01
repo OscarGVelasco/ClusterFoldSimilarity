@@ -93,7 +93,7 @@ Idents(singlecell.object.list[[1]]) <- factor(singlecell.object.list[[1]][[]][,"
 
 library(ClusterFoldSimilarity)
 # Compute similarities
-similarity.table <- clusterFoldSimilarity(sceList = singlecell.object.list, 
+similarity.table <- clusterFoldSimilarity(scList = singlecell.object.list, 
                                           sampleNames = c("human","human.NA"),
                                           topN = 1, 
                                           nSubsampling = 24)
@@ -144,7 +144,7 @@ If we suspect that clusters could be related with more than one cluster of other
 
 ```{r}
 # Retrieve the top 3 similar cluster for each of the clusters:
-similarity.table.3top <- clusterFoldSimilarity(sceList = singlecell.object.list, 
+similarity.table.3top <- clusterFoldSimilarity(scList = singlecell.object.list, 
                                                topN = 3, # Obtain top 3 values
                                                sampleNames = c("human","human.NA"), 
                                                nSubsampling = 24)
@@ -157,7 +157,7 @@ If we are interested on the features that contributed to the similarity score (m
 
 ```{r}
 # Retrieve the top 5 features that contribute the most to the similarity between each pair of clusters:
-similarity.table.5top.features <- clusterFoldSimilarity(sceList = singlecell.object.list, 
+similarity.table.5top.features <- clusterFoldSimilarity(scList = singlecell.object.list, 
                                                         topNFeatures = 5, 
                                                         nSubsampling = 24)
 head(similarity.table.5top.features, n=10)
@@ -170,7 +170,7 @@ Sometimes it is useful to retrieve all the similarity values for downstream anal
 By default, `clusterFoldSimilarity` creates a heatmap plot with the computed similarity values (from the perspective of the first dataset found on `scList`; to modify this plot see the following section). The top 2 similarities for each group within dataset 1 (heatmap row-wise) are highlighted with colored borders.
 
 ```{r}
-similarity.table.all.values <- clusterFoldSimilarity(sceList = singlecell.object.list, 
+similarity.table.all.values <- clusterFoldSimilarity(scList = singlecell.object.list, 
                                                      sampleNames = c("human","human.NA"), 
                                                      topN = Inf)
 dim(similarity.table.all.values)
@@ -239,7 +239,7 @@ singlecell.object.list.variable <- lapply(singlecell.object.list, function(x){x[
 # Setting the number of CPUs with BiocParallel:
 BiocParallel::register(BPPARAM =  BiocParallel::MulticoreParam(workers = 6))
 
-similarity.table.human.mouse <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
+similarity.table.human.mouse <- clusterFoldSimilarity(scList = singlecell.object.list.variable,
                                                         sampleNames = c("human","human.NA","mouse"),
                                                         topN = 1, 
                                                         nSubsampling = 24,
@@ -249,7 +249,7 @@ similarity.table.human.mouse <- clusterFoldSimilarity(sceList = singlecell.objec
 We can compute and visualize with a heatmap all the similarities for each cluster/group of cells from the 3 datasets using `topN=Inf`. Additionally, we can use the function `similarityHeatmap()` from this package to plot the heatmap with the datasets in a different order, or just plot the 2 datasets we are interested in. The top 2 similarities are highlighted to help visualizing the best matching groups.
 
 ```{r}
-similarity.table.human.mouse.all <- clusterFoldSimilarity(sceList = singlecell.object.list.variable,
+similarity.table.human.mouse.all <- clusterFoldSimilarity(scList = singlecell.object.list.variable,
                                                           sampleNames = c("human","human.NA","mouse"),
                                                           topN = Inf, 
                                                           nSubsampling = 24,
