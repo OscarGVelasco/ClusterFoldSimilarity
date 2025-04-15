@@ -1,7 +1,7 @@
 Package: ClusterFoldSimilarity
 Type: Package
 Title: Calculate similarity of clusters from different single cell samples using foldchanges
-Version: 1.3.0
+Version: 1.4.0
 Authors@R: person("Oscar", "Gonzalez-Velasco",
   email = "oscargvelasco@gmail.com",
   role = c("cre", "aut"),
