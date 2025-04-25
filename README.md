@@ -2,6 +2,10 @@
 
 Calculate similarities between cell-groups/clusters from any number of independent single-cell experiments, without data integration or batch correction.
 
+### Citation
+
+> Oscar González-Velasco, Malte Simon, Rüstem Yilmaz, Rosanna Parlato, Jochen Weishaupt, Charles D. Imbusch, Benedikt Brors, Identifying similar populations across independent single cell studies without data integration, NAR Genomics and Bioinformatics, Volume 7, Issue 2, June 2025, lqaf042, https://doi.org/10.1093/nargab/lqaf042
+
 # Installation
 
 The package can be installed from R software using devtools:
