@@ -142,7 +142,7 @@ clusterFoldSimilarity <- function(scList=NULL, sampleNames=NULL, topN=1, topNFea
         groups <- factor(Seurat::Idents(scList[[nScObject]]))
       }
       clusterNames <- levels(groups)
-      countData <- Matrix::Matrix(data=Seurat::GetAssayData(scList[[nScObject]], slot="counts"), sparse=TRUE)
+      countData <- Matrix::Matrix(data=Seurat::GetAssayData(scList[[nScObject]], layer="counts"), sparse=TRUE)
     }
     return(list(countData, groups, clusterNames))
   })

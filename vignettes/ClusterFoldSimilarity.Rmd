@@ -53,7 +53,7 @@ Parallel computing is available through the option parallel=TRUE which make use 
 
 Typically, `ClusterFoldSimilarity` will receive as input either a list of two or more `Seurat` or `SingleCellExperiment` objects.
 
-`ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, slot = "counts")` in the case of `Seurat`, or `counts()` for `SingleCellExperiment` object), and **group or cluster label information** (using `Idents()` function from `Seurat`, or `colLabels()` for `SingleCellExperiment` ).
+`ClusterFoldSimilarity` will obtain the **raw count data** from these objects ( `GetAssayData(assay, layer = "counts")` in the case of `Seurat`, or `counts()` for `SingleCellExperiment` object), and **group or cluster label information** (using `Idents()` function from `Seurat`, or `colLabels()` for `SingleCellExperiment` ).
 
 For the sake of illustration, we will employ the scRNAseq package, which contains numerous individual-cell datasets ready for download and encompassing samples from both human and mouse origins. In this example, we specifically utilize 2 human single-cell datasets obtained from the pancreas.
 
